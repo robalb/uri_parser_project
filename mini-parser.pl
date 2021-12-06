@@ -27,7 +27,7 @@
 %  lista1 in lista2 e viceversa
 
 
-mini_parse(String, A, B) :-
+mini_parse(String, uri(A, B)) :-
     string_chars(String, StringL),
     parse(StringL, A, B).
 %  Qui vengono definiti e messo l'ordine nel quale gli stati dell'automa
