@@ -87,12 +87,12 @@ slash_path_quer_frag([],
 [].
 
 opt_slash_path_quer_frag(Path,
-                        Query,
-                        Fragment) -->
+                         Query,
+                         Fragment) -->
 slash,
 path_quer_frag(Path, Query, Fragment).
 
-slash --> [""].
+slash --> [].
 slash --> ['/'].
 
 
