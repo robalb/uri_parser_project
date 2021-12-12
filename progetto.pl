@@ -40,7 +40,7 @@ the_uri_parse(Scheme,
               Path,
               Query,
               Fragment) -->
-schema(Scheme),
+scheme(Scheme),
 [':'],
 authority(Userinfo, Host, Port),
 slash_path_quer_frag(Path, Query, Fragment).
@@ -74,6 +74,19 @@ cose_strane(Userinfo,
             Fragment).*/
 
 % implementazione delle sotto-grammatiche
+scheme(Scheme) --> identificatore(Scheme).
+
+authorithy(Userinfo, Host, Port) --> ['/'], ['/'],
+userinfo(Userinfo), host(Host), port(Port).
+
+userinfo([]) --> [].
+userinfo(Userinfo) --> identificatore(Userinfo), ['@'].
+
+% host da implementare
+host(['H']) --> ['H'].
+
+port([]) --> [].
+port(Port) --> digit(Port).
 
 slash_path_quer_frag(Path,
                      Query,
@@ -95,5 +108,48 @@ path_quer_frag(Path, Query, Fragment).
 slash --> [].
 slash --> ['/'].
 
+path_quer_frag(Path, Query, Fragment) -->
+path(Path), query(Query), fragment(Fragment).
 
+% magari da riguardare un attimo la ricorsione
+
+path(Path) --> identificatore(H), path_opt(T),
+{append(H, T, Path)}.
+
+path_opt([]) --> [].
+path_opt([/| Path_opt]) --> ['/'], identificatore(H), path_opt(T),
+{append(H, T, Path_opt)}.
+
+% definizione di predicati di supporto
+
+digit([H | []]) --> [H], {controllo_digit(H)}.
+digit([H | T]) --> [H], {controllo_digit(H)}, digit(T).
+
+identificatore([H | []]) --> [H],{ controllo_carattere(H)}.
+identificatore([H | T]) --> [H], { controllo_carattere(H)}, identificatore(T).
+
+controllo_digit(Digit) :-
+char_code(Digit, D),
+D >= 48,
+D =< 57.
+
+controllo_carattere(Carattere) :-
+Carattere \= '.',
+Carattere \= '/',
+Carattere \= '?',
+Carattere \= '#',
+Carattere \= '@',
+Carattere \= ':'.
+
+/*carattere(Char) :-
+char_code(Char, C),
+C < 48.
+
+carattere(Char) :-
+char_code(Char, C),
+C > 57.
+*/
+
+
+% fine definizione di predicati di supporto
 %!  %end of file -- progetto.pl
