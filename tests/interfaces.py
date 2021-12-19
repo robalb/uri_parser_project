@@ -1,8 +1,13 @@
 """language-independent Unit tests
 https://github.com/yuce/pyswip
+https://docs.python.org/3/library/subprocess.html
 """
 from pyswip import Prolog
 from urllib.parse import urlparse
+import os
+
+class MalformedException(Exception):
+    pass
 
 class ParserInterface:
     """Interface"""
@@ -17,10 +22,12 @@ class ParserInterface:
 
 class PrologParser(ParserInterface):
     def __init__(self):
+        dirname = os.path.dirname(__file__)
+        filename = os.path.join(dirname, '../Prolog/uri-parse.pl')
         self.prolog = Prolog()
-        self.prolog.consult("uri-parse.pl")
+        self.prolog.consult(filename)
 
-    def __replace_prolog_none_with_none(self, dic):
+    def __normalize_none(self, dic):
         """Returns a new dict, with all the empty lists replaced with None"""
 
         def l(v):
@@ -31,7 +38,7 @@ class PrologParser(ParserInterface):
         return {k: l(v) for k, v in dic.items()}
 
     def parse(self, uri):
-        #Danger: arbitrary prolog code execution
+        #Danger: This allows arbitrary prolog code execution
         prolog_query = f'''
             uri_parse("{uri}", uri(Scheme,
               Userinfo,
@@ -41,8 +48,10 @@ class PrologParser(ParserInterface):
               Query,
               Fragment))'''
         query = list(self.prolog.query(prolog_query))
+        if len(query) == 0:
+            raise MalformedException
         row = query[0]
-        row = self.__replace_prolog_none_with_none(row)
+        row = self.__normalize_none(row)
         return {
             'scheme': row['Scheme'],
             'userinfo': row['Userinfo'],
@@ -66,25 +75,29 @@ class UrllibParser(ParserInterface):
             elif out.scheme == 'https':
                 port = '443'
 
-        def l(v):
+        def normalize_none(v):
+            """replace empty strings with none"""
             if isinstance(v, str) and len(v) == 0:
                 return None
             return v
 
         return {
-            'scheme': l(out.scheme),
-            'userinfo': l(out.username),
-            'host': l(out.hostname),
-            'port': l(port),
-            'path': l(out.path),
-            'query': l(out.query),
-            'fragment': l(out.fragment)
+            'scheme': normalize_none(out.scheme),
+            'userinfo': normalize_none(out.username),
+            'host': normalize_none(out.hostname),
+            'port': normalize_none(port),
+            'path': normalize_none(out.path),
+            'query': normalize_none(out.query),
+            'fragment': normalize_none(out.fragment)
         }
 
-prolog = PrologParser()
-python = UrllibParser()
-def parse(uri):
-    print("PROLOG", prolog.parse(uri))
-    print("PYTHON", python.parse(uri))
+# prolog = PrologParser()
+# python = UrllibParser()
+# def parse(uri):
+#     try:
+#         print("PROLOG", prolog.parse(uri))
+#     except MalformedException as e:
+#         print("PROLOG: malformed")
+#     print("PYTHON", python.parse(uri))
 
-parse("http://hello.it")
+# parse("mailto://foo/bar?q")
