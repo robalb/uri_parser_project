@@ -40,20 +40,20 @@ class Tests(unittest.TestCase):
                 'query': None,
                 'fragment': None
             },
-            'https://user@disco.unimib.it:90': {
+            'https://user:pass@disco.unimib.it': {
                 'scheme': 'https',
                 'userinfo': 'user',
                 'host': 'disco.unimib.it',
-                'port': '90',
+                'port': '80',
                 'path': None,
                 'query': None,
                 'fragment': None
             },
         }
-        for uri, res in tests.items():
-            with self.subTest(uri=uri, expected=res):
+        for uri, expected in tests.items():
+            with self.subTest(uri=uri, expected=expected):
                 self.assertDictEqual(
                     self.parser.parse(uri),
-                    res,
+                    expected,
                     f"{uri} should parse correctly"
                 )

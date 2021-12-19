@@ -1,7 +1,0 @@
-Scheme: http
-Userinfo: []
-Host: disco.unimib.it
-Port: 80
-Path: []
-Query: []
-Fragment: []
