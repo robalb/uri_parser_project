@@ -36,20 +36,35 @@ atom_chars_wrapper(A, B) :-
 atom_chars_wrapper(A, B) :-
     atom_chars(A, B).
 
+uri_display(Uri) :-
+uri_display(Uri, user_output).
+
+
 uri_display(uri(Scheme,
               Userinfo,
               Host,
               Port,
               Path,
               Query,
-              Fragment)).
-uri_display(uri(Scheme,
-              Userinfo,
-              Host,
-              Port,
-              Path,
-              Query,
-              Fragment), Stream).
+              Fragment), Stream) :-
+set_output(Stream),
+write('Scheme: '),
+writeln(Scheme),
+write('Userinfo: '),
+writeln(Userinfo),
+write('Host: '),
+writeln(Host),
+write('Port: '),
+writeln(Port),
+write('Path: '),
+writeln(Path),
+write('Query: '),
+writeln(Query),
+write('Fragment: '),
+writeln(Fragment),
+close(Stream).
+
+
 
 %!  definizione del lessico di una URI
 
