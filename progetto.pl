@@ -19,15 +19,22 @@ the_uri_parse(SchemeL,
               FragmentL,
               URIList,
               []),
-atom_chars(Scheme, SchemeL),
-atom_chars(Userinfo, UserinfoL),
-atom_chars(Host, HostL),
-atom_chars(Port, PortL),
-atom_chars(Path, PathL),
-atom_chars(Query, QueryL),
-atom_chars(Fragment, FragmentL),
+atom_chars_wrapper(Scheme, SchemeL),
+atom_chars_wrapper(Userinfo, UserinfoL),
+atom_chars_wrapper(Host, HostL),
+atom_chars_wrapper(Port, PortL),
+atom_chars_wrapper(Path, PathL),
+atom_chars_wrapper(Query, QueryL),
+atom_chars_wrapper(Fragment, FragmentL),
 !.
 
+atom_chars_wrapper(A, B) :-
+    length(B, C),
+    C is 0,
+    A = [].
+
+atom_chars_wrapper(A, B) :-
+    atom_chars(A, B).
 
 uri_display(uri(Scheme,
               Userinfo,
