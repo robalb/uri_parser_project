@@ -19,17 +19,30 @@ the_uri_parse(SchemeL,
               FragmentL,
               URIList,
               []),
-string_chars(Scheme, SchemeL),
-string_chars(Userinfo, UserinfoL),
-string_chars(Host, HostL),
-string_chars(Port, PortL),
-string_chars(Path, PathL),
-string_chars(Query, QueryL),
-string_chars(Fragment, FragmentL).
+atom_chars(Scheme, SchemeL),
+atom_chars(Userinfo, UserinfoL),
+atom_chars(Host, HostL),
+atom_chars(Port, PortL),
+atom_chars(Path, PathL),
+atom_chars(Query, QueryL),
+atom_chars(Fragment, FragmentL),
+!.
 
 
-uri_display(URIString).
-uri_display(URIString, Text).
+uri_display(uri(Scheme,
+              Userinfo,
+              Host,
+              Port,
+              Path,
+              Query,
+              Fragment)).
+uri_display(uri(Scheme,
+              Userinfo,
+              Host,
+              Port,
+              Path,
+              Query,
+              Fragment), Stream).
 
 %!  definizione del lessico di una URI
 
@@ -117,7 +130,7 @@ host_opt([]) --> [].
 host_opt(['.' | Host_opt]) --> ['.'], identificatore_host(H), host_opt(T),
 {append(H, T, Host_opt)}.
 
-port([]) --> [].
+port(['8', '0']) --> [].
 port(Port) --> digit(Port).
 
 slash_path_quer_frag(Path,
@@ -183,7 +196,7 @@ caratteri([H | []]) --> [H].
 caratteri([H | T]) --> [H], caratteri(T).
 
 caratteri_no_hashtag([H | []]) --> [H], {H \= '#' }.
-caratteri_no_hashtag([H | [T]]) --> [H], {H \= '#'}, caratteri(T).
+caratteri_no_hashtag([H | [T]]) --> [H], {H \= '#'}, caratteri_no_hashtag(T).
 
 identificatore([H | []]) --> [H],{ controllo_carattere(H)}.
 identificatore([H | T]) --> [H], { controllo_carattere(H)}, identificatore(T).
@@ -243,7 +256,6 @@ controllo_alfanum(Alfanum) :-
 controllo_digit(Alfanum).
 
 controllo_carattere(Carattere) :-
-Carattere \= '.',
 Carattere \= '/',
 Carattere \= '?',
 Carattere \= '#',
