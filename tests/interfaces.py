@@ -49,7 +49,7 @@ class PrologParser(ParserInterface):
               Fragment))'''
         query = list(self.prolog.query(prolog_query))
         if len(query) == 0:
-            raise MalformedException
+            raise MalformedException(uri)
         row = query[0]
         row = self.__normalize_none(row)
         return {
