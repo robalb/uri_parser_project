@@ -11,5 +11,7 @@ Per eseguire i test:
 
 - eseguire i comandi
 
-        docker build -t uri_parser_tests .
-        docker run uri_parser_tests
+  ```console
+  docker build -t uri_parser_tests .
+  docker run uri_parser_tests
+  ```
