@@ -70,8 +70,8 @@ Identificatore-query    ::= ( 'caratteri senza #' )+
 Identificatore          ::= ( 'caratteri senza # ? / @ :' )+
 Identificatore-host     ::= ( 'caratteri senza # ? / @ : .' )+
 
-Digit     ::= ( '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' )
-Alpha     ::= ( '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | 'a-zA-Z' )
+Digit     ::= [0-9]
+Alpha     ::= [0-9a-zA-Z]
 
 
 ```
