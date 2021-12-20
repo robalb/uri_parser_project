@@ -14,7 +14,7 @@ Implementano una versione semplificata dell' [RFC3986](https://datatracker.ietf.
 @robalb
 
 ## Specifiche trascritte in eBNF
-Di seguito è riportata la sintassi degli URI come descritta nella consegna, trascritta in un dialetto dell Extended Backus–Naur form.
+Di seguito è riportata la sintassi degli URI come descritta nella consegna, trascritta in [W3C-style](https://www.w3.org/TR/2010/REC-xquery-20101214/#EBNFNotation) Extended Backus–Naur form.
 
 Consultabile tramite [diagramma interattivo](./docs/index.md)
 
