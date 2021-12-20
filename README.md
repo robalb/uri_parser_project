@@ -7,7 +7,7 @@ un progetto in prolog per lp
 
 Per eseguire i test:
 
-- [https://docs.docker.com/get-docker/](installare docker)
+- [installare docker](https://docs.docker.com/get-docker/)
 
 - eseguire i comandi
 
