@@ -1,19 +1,30 @@
-# uri parser
+# URI parsers
 
-Un parser di URI scritto in Lisp e Prolog.
+Due parser di URI, scritti in Lisp e Prolog.
+Implementano una versione semplificata dell' [RFC3986](https://datatracker.ietf.org/doc/html/rfc3986)
 
+<img src="./docs/summary-diagram.png" />
 
-## specifiche trascritte in eBNF
+## Autori
 
-tramite [questo sito](https://bottlecaps.de/rr/ui) sono stati generati i seguenti [schemi interattivi](./docs/index.html)
+@AdrianC64
+
+@ChrisD184
+
+@robalb
+
+## Specifiche trascritte in eBNF
+Di seguito è riportata la sintassi degli URI come descritta nella consegna, trascritta in un dialetto dell Extended Backus–Naur form.
+
+Consultabile tramite [diagramma interattivo](./docs/index.md)
 
 ```eBNF
 
-URI          ::= Scheme ':' Generic-URI
-               | 'mailto' ':' Userinfo ('@' Host)?
+URI          ::= 'mailto' ':' Userinfo ('@' Host)?
                | 'news' ':' Host
                | ('tel' | 'fax') ':' Userinfo
                | 'zos' ':' Zos-URI
+               | Scheme ':' Generic-URI
                
 Generic-URI  ::= Authority ( '/' (Path)? ('?' Query)? ('#' Fragment)? )?
                | ('/')? (Path)? ('?' Query)? ('#' Fragment)?
@@ -66,7 +77,7 @@ Alpha     ::= ( '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | 'a-z
 ```
 
 
-## tests
+## Test automatizzati
 
 Per eseguire i test:
 
@@ -78,3 +89,6 @@ Per eseguire i test:
   docker build -t uri_parser_tests .
   docker run uri_parser_tests
   ```
+## Crediti
+
+diagrammi generati tramite https://bottlecaps.de/rr/ui
