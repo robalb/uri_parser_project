@@ -18,6 +18,8 @@ class Tests(unittest.TestCase):
         tests = [
             #https://elearning.unimib.it/mod/forum/discuss.php?d=189837
             'mailto://foo/bar?q',
+            #https://elearning.unimib.it/mod/forum/discuss.php?d=189837#p306737
+            'zos:/',
             #userinfo can't contain ':'
             'http://user:password@disco.unimib.it'
         ]
