@@ -31,21 +31,33 @@ class Tests(unittest.TestCase):
                 'query': None,
                 'fragment': None
             },
-            'https://disco.unimib.it': {
+            #https, ports
+            'https://disco.unimib.it:42': {
                 'scheme': 'https',
                 'userinfo': None,
+                'host': 'disco.unimib.it',
+                'port': '42',
+                'path': None,
+                'query': None,
+                'fragment': None
+            },
+            #userinfo
+            'http://az-_09@disco.unimib.it': {
+                'scheme': 'http',
+                'userinfo': 'az-_09',
                 'host': 'disco.unimib.it',
                 'port': '80',
                 'path': None,
                 'query': None,
                 'fragment': None
             },
-            'https://user:pass@disco.unimib.it': {
-                'scheme': 'https',
-                'userinfo': 'user',
+            #path
+            'http://az-_09@disco.unimib.it/p/a/th': {
+                'scheme': 'http',
+                'userinfo': 'az-_09',
                 'host': 'disco.unimib.it',
                 'port': '80',
-                'path': None,
+                'path': 'p/a/th',
                 'query': None,
                 'fragment': None
             },

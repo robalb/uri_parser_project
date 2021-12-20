@@ -153,7 +153,7 @@ host_opt(['.' | Host_opt]) --> ['.'], identificatore_host(H), host_opt(T),
 {append(H, T, Host_opt)}.
 
 port(['8', '0']) --> [].
-port(Port) --> digit(Port).
+port(Port) --> [':'], digit(Port).
 
 slash_path_quer_frag(Path,
                      Query,
