@@ -91,4 +91,4 @@ Per eseguire i test:
   ```
 ## Crediti
 
-diagrammi generati tramite https://bottlecaps.de/rr/ui
+diagrammi generati tramite https://github.com/GuntherRademacher/rr
