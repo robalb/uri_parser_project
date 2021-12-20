@@ -1,5 +1,6 @@
 *.bak
 *~
+*.pdf
 __pycache__/
 #Posso spiegare..
 .vscode/
