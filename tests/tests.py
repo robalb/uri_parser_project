@@ -15,9 +15,16 @@ class Tests(unittest.TestCase):
         self.parser = PrologParser()
 
     def test_malformed_uris(self):
-        #https://elearning.unimib.it/mod/forum/discuss.php?d=189837
-        with self.assertRaises(MalformedException):
-            self.parser.parse("mailto://foo/bar?q")
+        tests = [
+            #https://elearning.unimib.it/mod/forum/discuss.php?d=189837
+            'mailto://foo/bar?q',
+            #userinfo can't contain ':'
+            'http://user:password@disco.unimib.it'
+        ]
+        for uri in tests:
+            with self.subTest(uri=uri):
+                with self.assertRaises(MalformedException):
+                    self.parser.parse(uri)
 
     def test_parsed_values(self):
         tests = {

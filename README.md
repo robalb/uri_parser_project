@@ -2,4 +2,14 @@
 
 un progetto in prolog per lp
 
-modifiche di test
+
+## tests
+
+Per eseguire i test:
+
+- [https://docs.docker.com/get-docker/](installare docker)
+
+- eseguire i comandi
+
+        docker build -t uri_parser_tests .
+        docker run uri_parser_tests
