@@ -72,13 +72,13 @@ class Tests(unittest.TestCase):
                 'query': None,
                 'fragment': None
             },
-            #query
-            'http://az-_09@disco.unimib.it?query-+./@': {
+            #query TODO initial_slash
+            'http://az-_09@disco.unimib.it/path?query-+./@': {
                 'scheme': 'http',
                 'userinfo': 'az-_09',
                 'host': 'disco.unimib.it',
                 'port': '80',
-                'path':None,
+                'path': 'path',
                 'query': 'query-+./@',
                 'fragment': None
             },

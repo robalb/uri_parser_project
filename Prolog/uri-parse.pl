@@ -66,8 +66,18 @@ close(Stream).
 
 
 
-%!  definizione del lessico di una URI
+% Regole specifiche
+the_uri_parse( Scheme,
+              Userinfo,
+              Host,
+              [],
+              [],
+              [],
+              []) -->
+{ string_chars("mailto", Scheme) }, Scheme, [':'], mailto(Userinfo, Host).
 
+
+%regole generali
 the_uri_parse(Scheme,
               Userinfo,
               Host,
@@ -92,15 +102,7 @@ scheme(Scheme),
 opt_slash_path_quer_frag(Path, Query, Fragment).
 
 % da implementare: le specifiche aggiuntive del pdf
-% the_uri_parse(Scheme,
-%               Userinfo,
-%               Host,
-%               Port,
-%               Path,
-%               Query,
-%               Fragment) -->
-% scheme(Scheme),
-% [':'],
+
 % sintassi_speciali(Userinfo,
 %             Host,
 %             Port,
@@ -207,8 +209,8 @@ query(Query) --> ['?'], caratteri_no_hashtag(Query).
 fragment([]) --> [].
 fragment(Fragment) --> ['#'], caratteri(Fragment).
 
-mailto(Userinfo, []) --> userinfo(Userinfo).
-mailto(Userinfo, Host) --> userinfo(Userinfo), ['@'], host(Host).
+mailto(Userinfo, []) --> identificatore(Userinfo).
+mailto(Userinfo, Host) --> identificatore(Userinfo), ['@'], host(Host).
 
 news(Host) --> host(Host).
 
