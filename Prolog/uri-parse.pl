@@ -92,47 +92,47 @@ scheme(Scheme),
 opt_slash_path_quer_frag(Path, Query, Fragment).
 
 % da implementare: le specifiche aggiuntive del pdf
-the_uri_parse(Scheme,
-              Userinfo,
-              Host,
-              Port,
-              Path,
-              Query,
-              Fragment) -->
-scheme(Scheme),
-[':'],
-sintassi_speciali(Userinfo,
-            Host,
-            Port,
-            Path,
-            Query,
-            Fragment).
+% the_uri_parse(Scheme,
+%               Userinfo,
+%               Host,
+%               Port,
+%               Path,
+%               Query,
+%               Fragment) -->
+% scheme(Scheme),
+% [':'],
+% sintassi_speciali(Userinfo,
+%             Host,
+%             Port,
+%             Path,
+%             Query,
+%             Fragment).
 % sintassi speciali
 
-sintassi_speciali(Userinfo,
-            Host,
-            [],
-            [],
-            [],
-            []) -->
-mailto(Userinfo, Host).
+% sintassi_speciali(Userinfo,
+%             Host,
+%             [],
+%             [],
+%             [],
+%             []) -->
+% mailto(Userinfo, Host).
 
-sintassi_speciali([],
-            Host,
-            [],
-            [],
-            [],
-            []) -->
-news(Host).
+% sintassi_speciali([],
+%             Host,
+%             [],
+%             [],
+%             [],
+%             []) -->
+% news(Host).
 
-sintassi_speciali(Userinfo,
-            Host,
-            Port,
-            Path,
-            Query,
-            Fragment) -->
-authorithy(Userinfo, Host, Port),
-path_quer_frag(Path, Query, Fragment).
+% sintassi_speciali(Userinfo,
+%             Host,
+%             Port,
+%             Path,
+%             Query,
+%             Fragment) -->
+% authorithy(Userinfo, Host, Port),
+% path_quer_frag(Path, Query, Fragment).
 
 % implementazione delle sotto-grammatiche
 scheme(Scheme) --> identificatore(Scheme).
@@ -179,11 +179,12 @@ path_quer_frag(Path, Query, Fragment) -->
 path(Path), query(Query), fragment(Fragment).
 
 % sintassi speciale zos
-path_quer_frag(Path, Query, Fragment) -->
-zos_path(Path), query(Query), fragment(Fragment).
+% path_quer_frag(Path, Query, Fragment) -->
+% zos_path(Path), query(Query), fragment(Fragment).
 
 % magari da riguardare un attimo la ricorsione
 
+path([])  --> [].
 path(Path) --> identificatore(H), path_opt(T),
 {append(H, T, Path)}.
 
@@ -200,8 +201,10 @@ zos_path(Path) --> id44(H),
  L8 =< 8,
  append(H, T, Path)}.
 
+query([]) --> [].
 query(Query) --> ['?'], caratteri_no_hashtag(Query).
 
+fragment([]) --> [].
 fragment(Fragment) --> ['#'], caratteri(Fragment).
 
 mailto(Userinfo, []) --> userinfo(Userinfo).
@@ -218,7 +221,7 @@ caratteri([H | []]) --> [H].
 caratteri([H | T]) --> [H], caratteri(T).
 
 caratteri_no_hashtag([H | []]) --> [H], {H \= '#' }.
-caratteri_no_hashtag([H | [T]]) --> [H], {H \= '#'}, caratteri_no_hashtag(T).
+caratteri_no_hashtag([H | T]) --> [H], {H \= '#'}, caratteri_no_hashtag(T).
 
 identificatore([H | []]) --> [H],{ controllo_carattere(H)}.
 identificatore([H | T]) --> [H], { controllo_carattere(H)}, identificatore(T).

@@ -20,6 +20,8 @@ class Tests(unittest.TestCase):
             'mailto://foo/bar?q',
             #https://elearning.unimib.it/mod/forum/discuss.php?d=189837#p306737
             'zos:/',
+            #https://elearning.unimib.it/mod/forum/discuss.php?d=189837#p307681
+            'zos://you@themainframe.bigiron.fe/hlq.source.fortran(svd)/some/more/path',
             #userinfo can't contain ':'
             'http://user:password@disco.unimib.it'
         ]
@@ -60,15 +62,35 @@ class Tests(unittest.TestCase):
                 'query': None,
                 'fragment': None
             },
-            #path
-            'http://az-_09@disco.unimib.it/p/a/th': {
+            #path TODO initial_slash
+            'http://disco.unimib.it/p/a/th': {
                 'scheme': 'http',
-                'userinfo': 'az-_09',
+                'userinfo': None,
                 'host': 'disco.unimib.it',
                 'port': '80',
                 'path': 'p/a/th',
                 'query': None,
                 'fragment': None
+            },
+            #query
+            'http://az-_09@disco.unimib.it?query-+./@': {
+                'scheme': 'http',
+                'userinfo': 'az-_09',
+                'host': 'disco.unimib.it',
+                'port': '80',
+                'path':None,
+                'query': 'query-+./@',
+                'fragment': None
+            },
+            #fragment
+            'http://az-_09@disco.unimib.it#fragment+-/@': {
+                'scheme': 'http',
+                'userinfo': 'az-_09',
+                'host': 'disco.unimib.it',
+                'port': '80',
+                'path':None,
+                'query': None,
+                'fragment': 'fragment+-/@'
             },
         }
         for uri, expected in tests.items():
