@@ -20,6 +20,13 @@ the_uri_parse(SchemeL,
               URIList,
               []),
 atom_chars_wrapper(Scheme, SchemeL),
+analisi_uri(Scheme,
+            UserinfoL,
+            HostL,
+            PortL,
+            PathL,
+            QueryL,
+            FragmentL),
 atom_chars_wrapper(Userinfo, UserinfoL),
 atom_chars_wrapper(Host, HostL),
 atom_chars_wrapper(Port, PortL),
@@ -29,24 +36,24 @@ atom_chars_wrapper(Fragment, FragmentL),
 !.
 
 atom_chars_wrapper(A, B) :-
-    length(B, C),
-    C is 0,
-    A = [].
+length(B, C),
+C is 0,
+A = [].
 
 atom_chars_wrapper(A, B) :-
-    atom_chars(A, B).
+atom_chars(A, B).
 
 uri_display(Uri) :-
 uri_display(Uri, user_output).
 
 
 uri_display(uri(Scheme,
-              Userinfo,
-              Host,
-              Port,
-              Path,
-              Query,
-              Fragment), Stream) :-
+                Userinfo,
+                Host,
+                Port,
+                Path,
+                Query,
+                Fragment), Stream) :-
 set_output(Stream),
 write('Scheme: '),
 writeln(Scheme),
@@ -64,10 +71,80 @@ write('Fragment: '),
 writeln(Fragment),
 close(Stream).
 
+%regola uri_analisis/7 che controlla che i "token" della grammatica
+% delle uri riconosciuti dal parser corrispondano alla sintassi
+% corrispondente a seconda del contenuto del campo "Scheme"
 
+analisi_uri(Scheme,
+            _Userinfo,
+            _Host,
+            [],
+            [],
+            [],
+            []) :-
+!,
+Scheme = 'mailto'.
 
-% Regole specifiche
-the_uri_parse( Scheme,
+analisi_uri(Scheme,
+            _Userinfo,
+            [],
+            [],
+            [],
+            [],
+            []) :-
+!,
+Scheme = 'tel'.
+
+analisi_uri(Scheme,
+            _Userinfo,
+            [],
+            [],
+            [],
+            [],
+            []) :-
+!,
+Scheme = 'fax'.
+
+analisi_uri(Scheme,
+            _Userinfo,
+            _Host,
+            _Port,
+            Path,
+            _Query,
+            _Fragment) :-
+!,
+Scheme = 'zos',
+check_path(Path, []).
+
+analisi_uri(_, _, _, _, _, _, _) :- !.
+
+check_path --> [C], {controllo_alfanum(C)}, id44(1).
+check_path --> [C], {controllo_alfanum(C)}, id44(1),
+['(', B], {controllo_alfanum(B)}, id8(1), [')'].
+
+id44(L) --> [C], {controllo_alfanum(C), L =< 43}.
+id44(L) --> [C], {controllo_alfanum(C), L2 is L + 1}, id44(L2).
+id44(L) --> ['.'], {L2 is L + 1}, id44(L2).
+
+id8(L) --> [C], {controllo_alfanum(C), L =< 7}.
+id8(L) --> [C], {controllo_alfanum(C), L2 is L + 1}, id8(L2).
+
+/* old implementation
+id44_recursive([H | []]) --> [H], {controllo_alfanum(H)}.
+id44_recursive([H | T]) --> [H], {controllo_alfanum(H)}, id44_recursive(T).
+id44_recursive(['.' | T]) --> ['.'], id44_recursive(T).
+*/
+/* old implementation of id8
+id8([H | T]) --> [H], {controllo_alfa(H)},
+id8_recursive(T).
+
+id8_recursive([H | []]) --> [H], {controllo_alfanum(H)}.
+id8_recursive([H | T]) --> [H], {controllo_alfanum(H)}, id8_recursive(T).
+*/
+
+% Regole per il parsing
+/*
+the_uri_parse(Scheme,
               Userinfo,
               Host,
               [],
@@ -75,7 +152,7 @@ the_uri_parse( Scheme,
               [],
               []) -->
 { string_chars("mailto", Scheme) }, Scheme, [':'], mailto(Userinfo, Host).
-
+*/
 
 %regole generali
 the_uri_parse(Scheme,
@@ -250,18 +327,6 @@ terzina(NNN) --> [N1], [N2], [N3],
  append([N1], [N2], N12),
  append(N12, [N3], NNN)}.
 
-id44([H | T]) --> [H], {controllo_alfa(H)},
-id44_recursive(T).
-
-id44_recursive([H | []]) --> [H], {controllo_alfanum(H)}.
-id44_recursive([H | T]) --> [H], {controllo_alfanum(H)}, id44_recursive(T).
-id44_recursive(['.' | T]) --> ['.'], id44_recursive(T).
-
-id8([H | T]) --> [H], {controllo_alfa(H)},
-id8_recursive(T).
-
-id8_recursive([H | []]) --> [H], {controllo_alfanum(H)}.
-id8_recursive([H | T]) --> [H], {controllo_alfanum(H)}, id8_recursive(T).
 
 controllo_digit(Digit) :-
 char_code(Digit, D),
@@ -288,16 +353,6 @@ Carattere \= '?',
 Carattere \= '#',
 Carattere \= '@',
 Carattere \= ':'.
-
-/*carattere(Char) :-
-char_code(Char, C),
-C < 48.
-
-carattere(Char) :-
-char_code(Char, C),
-C > 57.
-*/
-
 
 % fine definizione di predicati di supporto
 %!  %end of file -- progetto.pl
