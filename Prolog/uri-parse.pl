@@ -29,7 +29,7 @@ atom_chars_wrapper(Scheme, SchemeL),
             FragmentL),*/
 atom_chars_wrapper(Userinfo, UserinfoL),
 atom_chars_wrapper(Host, HostL),
-atom_chars_wrapper(Port, PortL),
+number_codes(Port, PortL), %serve per avere come porta un numero e non un atomo
 atom_chars_wrapper(Path, PathL),
 atom_chars_wrapper(Query, QueryL),
 atom_chars_wrapper(Fragment, FragmentL),
@@ -194,7 +194,7 @@ the_uri_parse(Scheme,
               [],
               []) -->
 {tel_fax(Tel_Fax), string_chars(Tel_Fax, Scheme)},
-Scheme, {!}, [':'], identificatore(Userinfo).
+Scheme, {!}, [':'], identificatore2(Userinfo).
 
 the_uri_parse(Scheme,
               Userinfo,
@@ -259,26 +259,26 @@ opt_slash_path_quer_frag(Path, Query, Fragment).
 % path_quer_frag(Path, Query, Fragment).
 
 % implementazione delle sotto-grammatiche
-scheme(Scheme) --> identificatore(Scheme).
+scheme(Scheme) --> identificatore2(Scheme).
 
 authorithy(Userinfo, Host, Port) --> ['/'], ['/'],
 userinfo(Userinfo), host(Host), port(Port).
 authorithy([], [], []) --> [].
 
 userinfo([]) --> [].
-userinfo(Userinfo) --> identificatore(Userinfo), ['@'].
+userinfo(Userinfo) --> identificatore2(Userinfo), ['@'].
 
 % host da implementare
-host(Host) --> identificatore_host(H), host_opt(T),
+host(Host) --> identificatore_host2(H), host_opt(T),
 {append(H, T, Host)}.
 host(Host) --> indirizzo_ip(Host).
 
 host_opt([]) --> [].
-host_opt(['.' | Host_opt]) --> ['.'], identificatore_host(H), host_opt(T),
+host_opt(['.' | Host_opt]) --> ['.'], identificatore_host2(H), host_opt(T),
 {append(H, T, Host_opt)}.
 
 port(['8', '0']) --> [].
-port(Port) --> [':'], digit(Port).
+port(Port) --> [':'], digit2(Port).
 
 /* capire se vogliamo usarlo ancora
 slash_path_quer_frag([],
@@ -305,55 +305,82 @@ path_query_frag(Path, Query, Fragment) -->
 ['/'], path(Path), query(Query), fragment(Fragment).
 path_query_frag([], [], []) --> [].
 
+
 % sintassi speciale zos
 
 zos_path_query_frag(Path, Query, Fragment) -->
 ['/'], zos_path(Path), query(Query), fragment(Fragment).
 zos_path_query_frag([], [], []) --> [].
 
+
 % path_quer_frag(Path, Query, Fragment) -->
 % zos_path(Path), query(Query), fragment(Fragment).
 
 % magari da riguardare un attimo la ricorsione
+% ci ho riguardato, a me sembra corretta - A. C.
 
-path([])  --> [].
-path(Path) --> identificatore(H), path_opt(T),
+path(Path) --> identificatore2(H), path_opt(T),
 {append(H, T, Path)}.
+path([])  --> [].
 
-path_opt([]) --> [].
-path_opt([ '/' | Path_opt]) --> ['/'], identificatore(H), path_opt(T),
+path_opt([ '/' | Path_opt]) --> ['/'], identificatore2(H), path_opt(T),
 {append(H, T, Path_opt)}.
+path_opt([]) --> [].
 
-zos_path(Path) --> id44(Path), {length(Path, L), L =< 44}.
-zos_path(Path) --> id44(H), {length(H, L44), L44 =< 44},
-['('], id8(T), [')'],
+
+zos_path(Path) --> id44_2(Path), {length(Path, L), L =< 44}.
+zos_path(Path) --> id44_2(H), {length(H, L44), L44 =< 44},
+['('], id8_2(T), [')'],
 {length(T, L8), L8 =< 8,
  append(['('], T, T1),
  append(T1, [')'], T2),
  append(H, T2, Path)}.
+%nel caso in cui si voglia accettare un zospath vuoto:
+% zos_path([]) --> [].
+% ANCHE SE DA QUELLO CHE C'é SCRITTO SUL FORUM NONSI DEVE FARE!
 
+query(Query) --> ['?'], caratteri_no_hashtag2(Query).
 query([]) --> [].
-query(Query) --> ['?'], caratteri_no_hashtag(Query).
 
+fragment(Fragment) --> ['#'], caratteri2(Fragment).
 fragment([]) --> [].
-fragment(Fragment) --> ['#'], caratteri(Fragment).
 
+mailto(Userinfo, []) --> identificatore2(Userinfo).
+mailto(Userinfo, Host) --> identificatore2(Userinfo), ['@'], host(Host).
 mailto([], []) --> [].
-mailto(Userinfo, []) --> identificatore(Userinfo).
-mailto(Userinfo, Host) --> identificatore(Userinfo), ['@'], host(Host).
 
-news([]) --> [].
 news(Host) --> host(Host).
+news([]) --> [].
 
 % definizione di predicati di supporto
 tel_fax(Tel_Fax) :- Tel_Fax = "tel".
 tel_fax(Tel_Fax) :- Tel_Fax = "fax".
-/* inizio implementazione semplificazione
+
+% inizio implementazione semplificazione
+
+base2([H | T], Pred) --> [H], {call(Pred, H)}, base2(T, Pred).
 base2([H | []], Pred) --> [H], {call(Pred, H)}.
-base2([H | T], Pred) --> [H], {call(Pred, H)}, base2(T).
 
 always(_).
-*/
+
+digit2(Digit) --> base2(Digit, controllo_digit).
+
+caratteri2(Caratteri) --> base2(Caratteri, always).
+
+caratteri_no_hashtag2(No_hashtag) --> base2(No_hashtag, controllo_no_hashtag).
+
+identificatore2(Identificatore) --> base2(Identificatore, controllo_carattere).
+
+identificatore_host2(Host) --> base2(Host, controllo_ident_host).
+
+id44_2([H | T]) --> [H], {controllo_alfa(H)}, base2(T, controllo_alfanum2).
+
+id8_2([H | T]) --> [H], {controllo_alfa(H)}, base2(T, controllo_alfanum).
+
+%fine implementazione semplificata!
+
+% VECCHIA IMPLEMENTAZIONE!!!
+/*
 digit([H | []]) --> [H], {controllo_digit(H)}.
 digit([H | T]) --> [H], {controllo_digit(H)}, digit(T).
 
@@ -382,7 +409,7 @@ id8_recursive(T).
 
 id8_recursive([H | []]) --> [H], {controllo_alfanum(H)}.
 id8_recursive([H | T]) --> [H], {controllo_alfanum(H)}, id8_recursive(T).
-
+*/
 indirizzo_ip(Ip) --> terzina(NNN1), {length(NNN1, 3)}, ['.'],
 terzina(NNN2), {length(NNN2, 3)}, ['.'],
 terzina(NNN3), {length(NNN3, 3)}, ['.'],
@@ -420,13 +447,18 @@ controllo_alfa(Char) :-
 char_code(Char, C),
 C >= 97,
 C =< 122.
-/*
+
 controllo_no_hashtag(C) :- C \= '#'.
-*/
+
 controllo_alfanum(Alfanum) :-
 controllo_alfa(Alfanum).
 controllo_alfanum(Alfanum) :-
 controllo_digit(Alfanum).
+
+controllo_alfanum2(Alfanum) :-
+Alfanum = '.'.
+controllo_alfanum2(Alfanum) :-
+controllo_alfanum(Alfanum).
 
 controllo_carattere(Carattere) :-
 Carattere \= '/',
@@ -435,5 +467,8 @@ Carattere \= '#',
 Carattere \= '@',
 Carattere \= ':'.
 
+controllo_ident_host(C) :-
+C \= '.',
+controllo_carattere(C).
 % fine definizione di predicati di supporto
 %!  %end of file -- progetto.pl
