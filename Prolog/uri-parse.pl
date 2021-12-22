@@ -1,5 +1,5 @@
 /* -*- Mode: Prolog -*- */
-%!  %begin file: progetto.pl
+%  begin of file: progetto.pl
 
 uri_parse(URIString,
           uri(Scheme,
@@ -20,13 +20,13 @@ the_uri_parse(SchemeL,
               URIList,
               []),
 atom_chars_wrapper(Scheme, SchemeL),
-analisi_uri(Scheme,
+/*analisi_uri(Scheme,
             UserinfoL,
             HostL,
             PortL,
             PathL,
             QueryL,
-            FragmentL),
+            FragmentL),*/
 atom_chars_wrapper(Userinfo, UserinfoL),
 atom_chars_wrapper(Host, HostL),
 atom_chars_wrapper(Port, PortL),
@@ -74,7 +74,7 @@ close(Stream).
 %regola uri_analisis/7 che controlla che i "token" della grammatica
 % delle uri riconosciuti dal parser corrispondano alla sintassi
 % corrispondente a seconda del contenuto del campo "Scheme"
-
+/*
 analisi_uri(Scheme,
             _Userinfo,
             _Host,
@@ -117,7 +117,8 @@ Scheme = 'zos',
 check_path(Path, []).
 
 analisi_uri(_, _, _, _, _, _, _) :- !.
-
+*/
+/*implementazione sbagliata, che si appoggia ad analisi_uri
 check_path --> [C], {controllo_alfanum(C)}, id44(1).
 check_path --> [C], {controllo_alfanum(C)}, id44(1),
 ['(', B], {controllo_alfanum(B)}, id8(1), [')'].
@@ -128,7 +129,7 @@ id44(L) --> ['.'], {L2 is L + 1}, id44(L2).
 
 id8(L) --> [C], {controllo_alfanum(C), L =< 7}.
 id8(L) --> [C], {controllo_alfanum(C), L2 is L + 1}, id8(L2).
-
+*/
 /* old implementation
 id44_recursive([H | []]) --> [H], {controllo_alfanum(H)}.
 id44_recursive([H | T]) --> [H], {controllo_alfanum(H)}, id44_recursive(T).
@@ -143,7 +144,30 @@ id8_recursive([H | T]) --> [H], {controllo_alfanum(H)}, id8_recursive(T).
 */
 
 % Regole per il parsing
-/*
+
+the_uri_zos_parse(Userinfo,
+                  Host,
+                  Port,
+                  Path,
+                  Query,
+                  Fragment) -->
+authorithy(Userinfo, Host, Port),
+zos_path_query_frag(Path, Query, Fragment).
+
+the_uri_parse(Scheme,
+              Userinfo,
+              Host,
+              Port,
+              Path,
+              Query,
+              Fragment) -->
+{string_chars("zos", Scheme)}, Scheme,{!}, [':'], the_uri_zos_parse(Userinfo,
+                                                    Host,
+                                                    Port,
+                                                    Path,
+                                                    Query,
+                                                    Fragment).
+
 the_uri_parse(Scheme,
               Userinfo,
               Host,
@@ -151,10 +175,27 @@ the_uri_parse(Scheme,
               [],
               [],
               []) -->
-{ string_chars("mailto", Scheme) }, Scheme, [':'], mailto(Userinfo, Host).
-*/
+{string_chars("mailto", Scheme)}, Scheme, {!}, [':'], mailto(Userinfo, Host).
 
-%regole generali
+the_uri_parse(Scheme,
+              [],
+              Host,
+              [],
+              [],
+              [],
+              []) -->
+{string_chars("news", Scheme)}, Scheme, {!}, [':'], news(Host).
+
+the_uri_parse(Scheme,
+              Userinfo,
+              [],
+              [],
+              [],
+              [],
+              []) -->
+{tel_fax(Tel_Fax), string_chars(Tel_Fax, Scheme)},
+Scheme, {!}, [':'], identificatore(Userinfo).
+
 the_uri_parse(Scheme,
               Userinfo,
               Host,
@@ -165,8 +206,12 @@ the_uri_parse(Scheme,
 scheme(Scheme),
 [':'],
 authorithy(Userinfo, Host, Port),
-slash_path_quer_frag(Path, Query, Fragment).
+path_query_frag(Path, Query, Fragment).
 
+%regole generali
+
+
+/* sembra non servire più
 the_uri_parse(Scheme,
               [],
               [],
@@ -177,7 +222,7 @@ the_uri_parse(Scheme,
 scheme(Scheme),
 [':'],
 opt_slash_path_quer_frag(Path, Query, Fragment).
-
+*/
 % da implementare: le specifiche aggiuntive del pdf
 
 % sintassi_speciali(Userinfo,
@@ -218,6 +263,7 @@ scheme(Scheme) --> identificatore(Scheme).
 
 authorithy(Userinfo, Host, Port) --> ['/'], ['/'],
 userinfo(Userinfo), host(Host), port(Port).
+authorithy([], [], []) --> [].
 
 userinfo([]) --> [].
 userinfo(Userinfo) --> identificatore(Userinfo), ['@'].
@@ -234,17 +280,18 @@ host_opt(['.' | Host_opt]) --> ['.'], identificatore_host(H), host_opt(T),
 port(['8', '0']) --> [].
 port(Port) --> [':'], digit(Port).
 
+/* capire se vogliamo usarlo ancora
+slash_path_quer_frag([],
+                     [],
+                     []) -->
+[].
 slash_path_quer_frag(Path,
                      Query,
                      Fragment) -->
 ['/'],
 path_quer_frag(Path, Query, Fragment).
-
-slash_path_quer_frag([],
-                     [],
-                     []) -->
-[].
-
+*/
+/* sembra non sia più necessario
 opt_slash_path_quer_frag(Path,
                          Query,
                          Fragment) -->
@@ -253,11 +300,17 @@ path_quer_frag(Path, Query, Fragment).
 
 slash --> [].
 slash --> ['/'].
-
-path_quer_frag(Path, Query, Fragment) -->
-path(Path), query(Query), fragment(Fragment).
+*/
+path_query_frag(Path, Query, Fragment) -->
+['/'], path(Path), query(Query), fragment(Fragment).
+path_query_frag([], [], []) --> [].
 
 % sintassi speciale zos
+
+zos_path_query_frag(Path, Query, Fragment) -->
+['/'], zos_path(Path), query(Query), fragment(Fragment).
+zos_path_query_frag([], [], []) --> [].
+
 % path_quer_frag(Path, Query, Fragment) -->
 % zos_path(Path), query(Query), fragment(Fragment).
 
@@ -272,13 +325,12 @@ path_opt([ '/' | Path_opt]) --> ['/'], identificatore(H), path_opt(T),
 {append(H, T, Path_opt)}.
 
 zos_path(Path) --> id44(Path), {length(Path, L), L =< 44}.
-zos_path(Path) --> id44(H),
-{length(H, L44),
- L44 =< 44},
+zos_path(Path) --> id44(H), {length(H, L44), L44 =< 44},
 ['('], id8(T), [')'],
-{length(T, L8),
- L8 =< 8,
- append(H, T, Path)}.
+{length(T, L8), L8 =< 8,
+ append(['('], T, T1),
+ append(T1, [')'], T2),
+ append(H, T2, Path)}.
 
 query([]) --> [].
 query(Query) --> ['?'], caratteri_no_hashtag(Query).
@@ -286,13 +338,22 @@ query(Query) --> ['?'], caratteri_no_hashtag(Query).
 fragment([]) --> [].
 fragment(Fragment) --> ['#'], caratteri(Fragment).
 
+mailto([], []) --> [].
 mailto(Userinfo, []) --> identificatore(Userinfo).
 mailto(Userinfo, Host) --> identificatore(Userinfo), ['@'], host(Host).
 
+news([]) --> [].
 news(Host) --> host(Host).
 
 % definizione di predicati di supporto
+tel_fax(Tel_Fax) :- Tel_Fax = "tel".
+tel_fax(Tel_Fax) :- Tel_Fax = "fax".
+/* inizio implementazione semplificazione
+base2([H | []], Pred) --> [H], {call(Pred, H)}.
+base2([H | T], Pred) --> [H], {call(Pred, H)}, base2(T).
 
+always(_).
+*/
 digit([H | []]) --> [H], {controllo_digit(H)}.
 digit([H | T]) --> [H], {controllo_digit(H)}, digit(T).
 
@@ -309,6 +370,19 @@ identificatore_host([H | []]) --> [H], {H \= '.', controllo_carattere(H)}.
 identificatore_host([H | T]) --> [H], {H \= '.', controllo_carattere(H)},
 identificatore_host(T).
 
+id44([H | T]) --> [H], {controllo_alfa(H)},
+id44_recursive(T).
+
+id44_recursive([H | []]) --> [H], {controllo_alfanum(H)}.
+id44_recursive([H | T]) --> [H], {controllo_alfanum(H)}, id44_recursive(T).
+id44_recursive(['.' | T]) --> ['.'], id44_recursive(T).
+
+id8([H | T]) --> [H], {controllo_alfa(H)},
+id8_recursive(T).
+
+id8_recursive([H | []]) --> [H], {controllo_alfanum(H)}.
+id8_recursive([H | T]) --> [H], {controllo_alfanum(H)}, id8_recursive(T).
+
 indirizzo_ip(Ip) --> terzina(NNN1), {length(NNN1, 3)}, ['.'],
 terzina(NNN2), {length(NNN2, 3)}, ['.'],
 terzina(NNN3), {length(NNN3, 3)}, ['.'],
@@ -324,9 +398,14 @@ terzina(NNN) --> [N1], [N2], [N3],
 {controllo_digit(N1),
  controllo_digit(N2),
  controllo_digit(N3),
+ controllo_terzina(N1, N2, N3),
  append([N1], [N2], N12),
  append(N12, [N3], NNN)}.
 
+controllo_terzina(N1, N2, N3) :-
+N is N1 * N2 * N3,
+N >= 0,
+N =< 255.
 
 controllo_digit(Digit) :-
 char_code(Digit, D),
@@ -341,7 +420,9 @@ controllo_alfa(Char) :-
 char_code(Char, C),
 C >= 97,
 C =< 122.
-
+/*
+controllo_no_hashtag(C) :- C \= '#'.
+*/
 controllo_alfanum(Alfanum) :-
 controllo_alfa(Alfanum).
 controllo_alfanum(Alfanum) :-
