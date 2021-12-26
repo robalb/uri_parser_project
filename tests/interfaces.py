@@ -37,8 +37,11 @@ class PrologParser(ParserInterface):
 
         return {k: l(v) for k, v in dic.items()}
 
-    def parse(self, uri):
+    def query(self, query):
         #Danger: This allows arbitrary prolog code execution
+        return list(self.prolog.query(query))
+
+    def parse(self, uri):
         prolog_query = f'''
             uri_parse("{uri}", uri(Scheme,
               Userinfo,
@@ -47,7 +50,7 @@ class PrologParser(ParserInterface):
               Path,
               Query,
               Fragment))'''
-        query = list(self.prolog.query(prolog_query))
+        query = self.query(prolog_query)
         if len(query) == 0:
             raise MalformedException(uri)
         row = query[0]

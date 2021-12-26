@@ -188,7 +188,7 @@ zos_path(Path) --> id44_2(H), {length(H, L44), L44 =< 44},
  append(H, T2, Path)}.
 %nel caso in cui si voglia accettare un zospath vuoto:
 % zos_path([]) --> [].
-% ANCHE SE DA QUELLO CHE C'é SCRITTO SUL FORUM NONSI DEVE FARE!
+% ANCHE SE DA QUELLO CHE C'Ã¨ SCRITTO SUL FORUM NONSI DEVE FARE!
 
 query(Query) --> ['?'], caratteri_no_hashtag2(Query).
 query([]) --> [].

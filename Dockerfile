@@ -12,6 +12,6 @@ COPY ./tests /project/tests
 
 WORKDIR /project
 
-CMD python -m unittest -v
+CMD python -m unittest
 
 # CMD tail -f /dev/null
