@@ -1,5 +1,6 @@
 import unittest
 from .interfaces import PrologParser, UrllibParser, MalformedException
+import time,datetime
 
 __unittest = True
 
@@ -31,3 +32,19 @@ class Tests(unittest.TestCase):
                     self.fail(f"did NOT parse: {string}")
                 res = bool(query)
                 self.assertTrue(res)
+
+    def test_time_metrics(self):
+
+        print("== TIMING TESTS ==")
+        tests = [
+            'uri_parse("http://asd", X)',
+            'uri_parse("http://user@disco.unimib.it/moodle/login?auth=asd&q=1#12", X)',
+        ]
+        for test in tests:
+            start_time = time.time()
+            query = self.parser.query(test)
+            end_time = time.time()
+            elapsed = end_time - start_time
+            print("-----------")
+            print( test)
+            print( str(datetime.timedelta(seconds=elapsed)))
