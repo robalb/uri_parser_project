@@ -16,6 +16,7 @@ class Tests(unittest.TestCase):
         self.parser = PrologParser()
 
     def test_fail_parse(self):
+
         tests = [
             #https://elearning.unimib.it/mod/forum/discuss.php?d=189837
             'mailto://foo/bar?q',
@@ -131,6 +132,7 @@ class Tests(unittest.TestCase):
                     self.parser.parse(uri)
 
     def test_parsed_values(self):
+        debatable_80 = None
         tests = {
             #assignment pdf, page 4/6
             'http://disco.unimib.it': {
@@ -408,7 +410,7 @@ class Tests(unittest.TestCase):
                 'scheme': 'mailto',
                 'userinfo': None,
                 'host': None,
-                'port': 80,
+                'port': debatable_80,
                 'path':None,
                 'query': None,
                 'fragment': None
@@ -417,7 +419,7 @@ class Tests(unittest.TestCase):
                 'scheme': 'mailto',
                 'userinfo': 'asdasd',
                 'host': None,
-                'port': 80,
+                'port': debatable_80,
                 'path':None,
                 'query': None,
                 'fragment': None
@@ -426,7 +428,7 @@ class Tests(unittest.TestCase):
                 'scheme': 'mailto',
                 'userinfo': 'user',
                 'host': 'host',
-                'port': 80,
+                'port': debatable_80,
                 'path':None,
                 'query': None,
                 'fragment': None
@@ -437,7 +439,7 @@ class Tests(unittest.TestCase):
                 'scheme': 'news',
                 'userinfo': None,
                 'host': None,
-                'port': 80,
+                'port': debatable_80,
                 'path':None,
                 'query': None,
                 'fragment': None
@@ -446,7 +448,7 @@ class Tests(unittest.TestCase):
                 'scheme': 'news',
                 'userinfo': None,
                 'host': 'host',
-                'port': 80,
+                'port': debatable_80,
                 'path':None,
                 'query': None,
                 'fragment': None
@@ -455,7 +457,7 @@ class Tests(unittest.TestCase):
                 'scheme': 'news',
                 'userinfo': None,
                 'host': '127.0.0.1',
-                'port': 80,
+                'port': debatable_80,
                 'path':None,
                 'query': None,
                 'fragment': None
@@ -466,7 +468,7 @@ class Tests(unittest.TestCase):
                 'scheme': 'tel',
                 'userinfo': None,
                 'host': None,
-                'port': 80,
+                'port': debatable_80,
                 'path':None,
                 'query': None,
                 'fragment': None
@@ -475,7 +477,7 @@ class Tests(unittest.TestCase):
                 'scheme': 'fax',
                 'userinfo': None,
                 'host': None,
-                'port': 80,
+                'port': debatable_80,
                 'path':None,
                 'query': None,
                 'fragment': None
@@ -484,7 +486,7 @@ class Tests(unittest.TestCase):
                 'scheme': 'fax',
                 'userinfo': '+39-327-9856-123',
                 'host': None,
-                'port': 80,
+                'port': debatable_80,
                 'path':None,
                 'query': None,
                 'fragment': None
@@ -493,7 +495,7 @@ class Tests(unittest.TestCase):
                 'scheme': 'tel',
                 'userinfo': '+393279856123',
                 'host': None,
-                'port': 80,
+                'port': debatable_80,
                 'path':None,
                 'query': None,
                 'fragment': None
