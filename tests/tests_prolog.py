@@ -20,7 +20,7 @@ class Tests(unittest.TestCase):
             #numeric port
             's://host.com:42': "uri(_, _, 'host.com', 42, _, _, _)",
             #only scheme
-            'fax:': "uri(fax, _, _, _, _, _, _)"
+            'qwe:': "uri(qwe, _, _, _, _, _, _)"
         }
         for string, term in tests.items():
             with self.subTest(string=string, term=term):

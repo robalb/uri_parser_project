@@ -509,7 +509,34 @@ class Tests(unittest.TestCase):
                 'query': None,
                 'fragment': None
             },
-            #TODO
+            'zos:/zos.path(z0s)': {
+                'scheme': 'zos',
+                'userinfo': None,
+                'host': None,
+                'port': 80,
+                'path': 'zos.path(z0s)',
+                'query': None,
+                'fragment': None
+            },
+            'zos:user@host:99/zos.path(z0s)?query': {
+                'scheme': 'zos',
+                'userinfo': 'user',
+                'host': 'host',
+                'port': 99,
+                'path': 'zos.path(z0s)',
+                'query': 'query',
+                'fragment': None
+            },
+            'zos:user@host:99': {
+                'scheme': 'zos',
+                'userinfo': 'user',
+                'host': 'host',
+                'port': 99,
+                'path': None,
+                'query': None,
+                'fragment': None
+            },
+            #TODO add more tests for ZOS
 
         }
         for uri, expected in tests.items():
