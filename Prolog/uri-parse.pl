@@ -22,11 +22,19 @@ the_uri_parse(SchemeL,
 atom_chars_wrapper(Scheme, SchemeL),
 atom_chars_wrapper(Userinfo, UserinfoL),
 atom_chars_wrapper(Host, HostL),
-number_codes(Port, PortL), %serve per avere come porta un numero e non un atomo
+number_codes_wrapper(Port, PortL), %serve per avere come porta un numero e non un atomo
 atom_chars_wrapper(Path, PathL),
 atom_chars_wrapper(Query, QueryL),
 atom_chars_wrapper(Fragment, FragmentL),
 !.
+
+number_codes_wrapper(A, B) :-
+length(B, C),
+C is 0,
+A = [].
+
+number_codes_wrapper(A, B) :-
+number_codes(A,B).
 
 atom_chars_wrapper(A, B) :-
 length(B, C),
@@ -139,7 +147,7 @@ scheme(Scheme) --> identificatore2(Scheme).
 
 authorithy(Userinfo, Host, Port) --> ['/'], ['/'],
 userinfo(Userinfo), host(Host), port(Port).
-authorithy([], [], []) --> [].
+authorithy([], [], ['8', '0']) --> [].
 
 userinfo([]) --> [].
 userinfo(Userinfo) --> identificatore2(Userinfo), ['@'].
@@ -179,8 +187,8 @@ path_opt([ '/' | Path_opt]) --> ['/'], identificatore2(H), path_opt(T),
 path_opt([]) --> [].
 
 
-zos_path(Path) --> id44_2(Path), {length(Path, L), L =< 44}.
-zos_path(Path) --> id44_2(H), {length(H, L44), L44 =< 44},
+zos_path(Path) --> id44_2(Path), {last(Path, C), C \= '.', length(Path, L), L =< 44}.
+zos_path(Path) --> id44_2(H), {last(H, C), C \= '.',length(H, L44), L44 =< 44},
 ['('], id8_2(T), [')'],
 {length(T, L8), L8 =< 8,
  append(['('], T, T1),
