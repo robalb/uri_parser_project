@@ -32,9 +32,6 @@ class Tests(unittest.TestCase):
             's#:',
             's::',
             's c:',
-            '1s:', #scheme must start with a letter
-            '§s:',
-            '+s:',
             ':',   #scheme can't be empty
             #HOST
             's://', #empty host
@@ -520,7 +517,7 @@ class Tests(unittest.TestCase):
                 'query': None,
                 'fragment': None
             },
-            'zos:user@host:99/zos.path(z0s)?query': {
+            'zos://user@host:99/zos.path(z0s)?query': {
                 'scheme': 'zos',
                 'userinfo': 'user',
                 'host': 'host',
@@ -529,7 +526,7 @@ class Tests(unittest.TestCase):
                 'query': 'query',
                 'fragment': None
             },
-            'zos:user@host:99': {
+            'zos://user@host:99': {
                 'scheme': 'zos',
                 'userinfo': 'user',
                 'host': 'host',

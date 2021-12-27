@@ -125,7 +125,7 @@ the_uri_parse(Scheme,
               [],
               []) -->
 {tel_fax(Tel_Fax), string_chars(Tel_Fax, Scheme)},
-Scheme, {!}, [':'], identificatore2(Userinfo).
+Scheme, {!}, [':'], tel_fax_userinfo(Userinfo).
 
 the_uri_parse(Scheme,
               Userinfo,
@@ -138,6 +138,10 @@ scheme(Scheme),
 [':'],
 authorithy(Userinfo, Host, Port),
 path_query_frag(Path, Query, Fragment).
+
+
+tel_fax_userinfo(A) --> identificatore2(A).
+tel_fax_userinfo([]) --> [].
 
 % fine regole parsing generali
 
