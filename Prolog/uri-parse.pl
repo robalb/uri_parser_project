@@ -316,16 +316,16 @@ single_alphabet_letter(Char) :-
     C =< 122.
 
 
-single_alphanum_letter(Alfanum) :-
-    single_alphabet_letter(Alfanum).
-single_alphanum_letter(Alfanum) :-
-    single_digit(Alfanum).
+single_alphanum_letter(Char) :-
+    single_alphabet_letter(Char).
+single_alphanum_letter(Char) :-
+    single_digit(Char).
 
 
-single_id44_character(Alfanum) :-
-    Alfanum = '.'.
-single_id44_character(Alfanum) :-
-    single_alphanum_letter(Alfanum).
+single_id44_character(Char) :-
+    Char = '.'.
+single_id44_character(Char) :-
+    single_alphanum_letter(Char).
 
 
 %%%
