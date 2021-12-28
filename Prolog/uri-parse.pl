@@ -133,7 +133,7 @@ tel_fax(Tel_Fax) :- Tel_Fax = "tel".
 tel_fax(Tel_Fax) :- Tel_Fax = "fax".
 
 tel_fax_userinfo(A) -->
-    identificatore2(A).
+    identificatore(A).
 tel_fax_userinfo([]) -->
     [].
 
@@ -142,9 +142,9 @@ tel_fax_userinfo([]) -->
 %%% regole mailto
 
 mailto(Userinfo, []) -->
-    identificatore2(Userinfo).
+    identificatore(Userinfo).
 mailto(Userinfo, Host) -->
-    identificatore2(Userinfo), ['@'], host(Host).
+    identificatore(Userinfo), ['@'], host(Host).
 mailto([], []) -->
     [].
 
@@ -162,7 +162,7 @@ news_host([]) -->
 %%% regole generali e zos
 
 scheme(Scheme) -->
-    identificatore2(Scheme).
+    identificatore(Scheme).
 
 
 authorithy(Userinfo, Host, Port) --> 
@@ -175,31 +175,33 @@ authorithy([], [], ['8', '0']) -->
 
 
 userinfo(Userinfo) -->
-    identificatore2(Userinfo),
+    identificatore(Userinfo),
     ['@'].
 userinfo([]) -->
     [].
 
 
 host(Host) -->
-    identificatore_host2(H),
+    identificatore_host(H),
     host_opt(T),
-    {append(H, T, Host)}.
-host(Host) -->
-    indirizzo_ip(Host).
+    { append(H, T, Host) }.
+
+%%% useless: the grammar already recognizes the structure of an ipv4
+% host(Host) -->
+%     indirizzo_ip(Host).
 
 host_opt(['.' | Host_opt]) -->
     ['.'],
-    identificatore_host2(H),
+    identificatore_host(H),
     host_opt(T),
-    {append(H, T, Host_opt)}.
+    { append(H, T, Host_opt) }.
 host_opt([]) -->
     [].
 
 
 port(Port) -->
     [':'],
-    digit2(Port).
+    one_or_more(Port, single_digit).
 port(['8', '0']) -->
     [].
 
@@ -223,7 +225,7 @@ zos_path_query_frag([], [], []) -->
 
 
 path(Path) -->
-    identificatore2(H),
+    identificatore(H),
     path_opt(T),
     {append(H, T, Path)}.
 path([])  -->
@@ -231,9 +233,9 @@ path([])  -->
 
 path_opt([ '/' | Path_opt]) -->
     ['/'],
-    identificatore2(H),
+    identificatore(H),
     path_opt(T),
-    {append(H, T, Path_opt)}.
+    { append(H, T, Path_opt) }.
 path_opt([]) -->
     [].
 
@@ -256,107 +258,131 @@ zos_path(Path) -->
 
 id44([H | T]) -->
     [H],
-    {controllo_alfa(H)},
-    base2(T, controllo_alfanum2).
+    { single_alphabet_letter(H) },
+    one_or_more(T, single_id44_character).
 
 id8([H | T]) -->
     [H],
-    {controllo_alfa(H)},
-    base2(T, controllo_alfanum).
+    {single_alphabet_letter(H)},
+    one_or_more(T, single_alphanum_letter).
 
 
 query(Query) -->
     ['?'],
-    caratteri_query(Query).
+    one_or_more(Query, single_query_character).
 query([]) -->
     [].
 
 
 fragment(Fragment) -->
     ['#'],
-    caratteri(Fragment).
+    one_or_more(Fragment, single_character).
 fragment([]) -->
     [].
 
 
-% definizione di predicati di supporto
-% TODO pulire e riordinare
+identificatore(Chars) -->
+    one_or_more(Chars, single_identifier_character).
 
-base2([H | T], Pred) --> [H], {call(Pred, H)}, base2(T, Pred).
-base2([H | []], Pred) --> [H], {call(Pred, H)}.
+identificatore_host(Chars) -->
+    one_or_more(Chars, single_host_character).
 
-always(_).
 
-digit2(Digit) --> base2(Digit, controllo_digit).
+%%%
+%%% Definizione di predicati di supporto
 
-caratteri(Caratteri) --> base2(Caratteri, always).
+one_or_more([H | T], Pred) -->
+    [H],
+    { call(Pred, H) },
+    one_or_more(T, Pred).
+one_or_more([H | []], Pred) -->
+    [H],
+    { call(Pred, H) }.
 
-caratteri_query(No_hashtag) --> base2(No_hashtag, controllo_no_hashtag).
 
-identificatore2(Identificatore) --> base2(Identificatore, controllo_carattere).
+single_digit(Digit) :-
+    char_code(Digit, D),
+    D >= 48,
+    D =< 57.
 
-identificatore_host2(Host) --> base2(Host, controllo_ident_host).
 
-indirizzo_ip(Ip) --> terzina(NNN1), {length(NNN1, 3)}, ['.'],
-terzina(NNN2), {length(NNN2, 3)}, ['.'],
-terzina(NNN3), {length(NNN3, 3)}, ['.'],
-terzina(NNN4), {length(NNN4, 3)},
-{append(NNN1 , ['.'], N1),
- append(NNN2, ['.'], N2),
- append(NNN3, ['.'], N3),
- append(N1,  N2, N12),
- append(N3, NNN4, N34),
- append(N12, N34, Ip)}.
+single_alphabet_letter(Char) :-
+    char_code(Char, C),
+    C >=65,
+    C =< 90.
+single_alphabet_letter(Char) :-
+    char_code(Char, C),
+    C >= 97,
+    C =< 122.
 
-terzina(NNN) --> [N1], [N2], [N3],
-{controllo_digit(N1),
- controllo_digit(N2),
- controllo_digit(N3),
- controllo_terzina(N1, N2, N3),
- append([N1], [N2], N12),
- append(N12, [N3], NNN)}.
 
-controllo_terzina(N1, N2, N3) :-
-N is N1 * N2 * N3,
-N >= 0,
-N =< 255.
+single_alphanum_letter(Alfanum) :-
+    single_alphabet_letter(Alfanum).
+single_alphanum_letter(Alfanum) :-
+    single_digit(Alfanum).
 
-controllo_digit(Digit) :-
-char_code(Digit, D),
-D >= 48,
-D =< 57.
 
-controllo_alfa(Char) :-
-char_code(Char, C),
-C >=65,
-C =< 90.
-controllo_alfa(Char) :-
-char_code(Char, C),
-C >= 97,
-C =< 122.
+single_id44_character(Alfanum) :-
+    Alfanum = '.'.
+single_id44_character(Alfanum) :-
+    single_alphanum_letter(Alfanum).
 
-controllo_no_hashtag(C) :- C \= '#'.
 
-controllo_alfanum(Alfanum) :-
-controllo_alfa(Alfanum).
-controllo_alfanum(Alfanum) :-
-controllo_digit(Alfanum).
+%%%
+%%% Definizione di carattere, progressivamente restrittiva.
+%%% Per semplicità, a differenza dell'rfc, definiamo come base senza restrizioni
+%%% qualsiasi carattere stampabile dello standard ascii, ovvero qualsiasi
+%%% carattere nel range 0x21 - 0x7E (lo spazio (0x20) è escluso)
 
-controllo_alfanum2(Alfanum) :-
-Alfanum = '.'.
-controllo_alfanum2(Alfanum) :-
-controllo_alfanum(Alfanum).
+single_character(Char) :-
+    char_code(Char, C),
+    C >= 33,
+    C =< 126.
 
-controllo_carattere(Carattere) :-
-Carattere \= '/',
-Carattere \= '?',
-Carattere \= '#',
-Carattere \= '@',
-Carattere \= ':'.
+single_query_character(Char) :-
+    Char \= '#',
+    single_character(Char).
 
-controllo_ident_host(C) :-
-C \= '.',
-controllo_carattere(C).
+single_identifier_character(Char) :-
+    Char \= '/',
+    Char \= '?',
+    Char \= '@',
+    Char \= ':',
+    single_query_character(Char).
 
-% fine definizione di predicati di supporto
-%!  %end of file -- progetto.pl
+single_host_character(Char) :-
+    Char \= '.',
+    single_identifier_character(Char).
+
+%%%
+%%% Le regole per il riconoscimento di un IPv4 sono ridondanti e non
+%%% contribuiscono al funzionamento del programma, dal momento che non
+%%% è richiesto di differenziare in alcun modo tra un host e un IPv4.
+%%% Sono tuttavia presenti nella grammatica della consegna, e per questo motivo
+%%% Le abbiamo implementate.
+
+% indirizzo_ip(Ip) -->
+%     terzina(NNN1), {length(NNN1, 3)}, ['.'],
+%     terzina(NNN2), {length(NNN2, 3)}, ['.'],
+%     terzina(NNN3), {length(NNN3, 3)}, ['.'],
+%     terzina(NNN4), {length(NNN4, 3)},
+%     {append(NNN1 , ['.'], N1),
+%     append(NNN2, ['.'], N2),
+%     append(NNN3, ['.'], N3),
+%     append(N1,  N2, N12),
+%     append(N3, NNN4, N34),
+%     append(N12, N34, Ip)}.
+
+% terzina(NNN) -->
+%     [N1], [N2], [N3],
+%     {single_digit(N1),
+%     single_digit(N2),
+%     single_digit(N3),
+%     controllo_terzina(N1, N2, N3),
+%     append([N1], [N2], N12),
+%     append(N12, [N3], NNN)}.
+
+% controllo_terzina(N1, N2, N3) :-
+%     N is N1 * N2 * N3,
+%     N >= 0,
+%     N =< 255.
