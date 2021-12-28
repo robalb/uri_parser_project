@@ -1,5 +1,5 @@
 /* -*- Mode: Prolog -*- */
-%  begin of file: progetto.pl
+%  begin of file: uri-parse.pl
 
 
 %%% uri_parse/2
@@ -90,32 +90,53 @@ uri_display(uri(Scheme,
 %%%
 %%%
 
+controllo_insensitive(String, List) :-
+    string_codes(String, List1),
+    string_chars(String1, List),
+    string_codes(String1, List2),
+    controllo_insensitive_ric(List1, List2).
+
+controllo_insensitive_ric([], []).
+controllo_insensitive_ric([H1 | T1], [H2 | T2]) :-
+    H1 = H2,
+    !,
+    controllo_insensitive_ric(T1, T2).
+controllo_insensitive_ric([H1 | T1], [H2 | T2]) :-
+    H1 is H2 - 32,
+    !,
+    controllo_insensitive_ric(T1, T2).
+controllo_insensitive_ric([H1 | T1], [H2 | T2]) :-
+    H1 is H2 + 32,
+    !,
+    controllo_insensitive_ric(T1, T2).
+
 uri_parse_start(Scheme, Userinfo, Host, [], [], [], []) -->
-    { string_chars("mailto", Scheme) },
-    Scheme,
-    { ! },
+    %%%{ string_chars("mailto", Scheme) },
+    scheme(Scheme),
     [':'],
+    { controllo_insensitive("mailto", Scheme), ! },
     mailto(Userinfo, Host).
 
 uri_parse_start(Scheme, [], Host, [], [], [], []) -->
-    { string_chars("news", Scheme) },
-    Scheme,
-    { ! },
+    %%%{ string_chars("news", Scheme) },
+    scheme(Scheme),
     [':'],
+    { controllo_insensitive("news", Scheme), ! },
     news_host(Host).
 
 uri_parse_start(Scheme, Userinfo, [], [], [], [], []) -->
-    { tel_fax(Tel_Fax), string_chars(Tel_Fax, Scheme) },
-    Scheme,
-    { ! },
+    %%%{ tel_fax(Tel_Fax), string_chars(Tel_Fax, Scheme) },
+    scheme(Scheme),
     [':'],
+    { tel_fax(Tel_Fax),
+      controllo_insensitive(Tel_Fax, Scheme), ! },
     tel_fax_userinfo(Userinfo).
 
 uri_parse_start(Scheme, Userinfo, Host, Port, Path, Query, Fragment) -->
-    { string_chars("zos", Scheme) },
-    Scheme,
-    { ! },
+    %%%{ string_chars("zos", Scheme) },
+    scheme(Scheme),
     [':'],
+    { controllo_insensitive("zos", Scheme), ! },
     authorithy(Userinfo, Host, Port),
     zos_path_query_frag(Path, Query, Fragment).
 
@@ -165,7 +186,7 @@ scheme(Scheme) -->
     identificatore(Scheme).
 
 
-authorithy(Userinfo, Host, Port) --> 
+authorithy(Userinfo, Host, Port) -->
     ['/', '/'],
     userinfo(Userinfo),
     host(Host),
@@ -386,3 +407,5 @@ controllo_terzina(N1, N2, N3) :-
     N is N1 * N2 * N3,
     N >= 0,
     N =< 255.
+
+%%% end of file -- uri-parse.pl
