@@ -129,7 +129,7 @@ class Tests(unittest.TestCase):
                     self.parser.parse(uri)
 
     def test_parsed_values(self):
-        debatable_80 = None
+        debatable_80 = 80
         tests = {
             #assignment pdf, page 4/6
             'http://disco.unimib.it': {
@@ -488,7 +488,7 @@ class Tests(unittest.TestCase):
                 'query': None,
                 'fragment': None
             },
-            'TeL': {
+            'TeL:': {
                 'scheme': 'tel',
                 'userinfo': None,
                 'host': None,
