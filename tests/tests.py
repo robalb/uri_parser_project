@@ -49,7 +49,7 @@ class Tests(unittest.TestCase):
             's://u?i@host',
             's://u#i@host',
             's://u i@host',
-            's://u:i@host', #also an invalid character, although allowed by the rfc
+            's://u:i@host', #also an invalid character, although allowed by rfc
             #PORT
             's://host:a', #port must be a number
             's://:42', #host missing
@@ -111,7 +111,7 @@ class Tests(unittest.TestCase):
             'zos:/1abc',
             'zos:/abc.', #id44 can't end wit a dot
             ('zos:/' + 'a' * 46), #id4 must be max 44 chars long
-            #'zos:/ab..c', #technically not allowed according to the real IBM specs
+            #'zos:/ab..c', #technically not allowed according to the IBM specs
             'zos:/id44(8)', #id8 must start with a letter
             'zos:/id44(asd.asd)' #id8 can only contain letters and numbers
             'zos:/id44(aaaabbbbc)' #id8 must be max 8 characters long
@@ -129,7 +129,7 @@ class Tests(unittest.TestCase):
                     self.parser.parse(uri)
 
     def test_parsed_values(self):
-        debatable_80 = None
+        debatable_80 = 80
         tests = {
             #assignment pdf, page 4/6
             'http://disco.unimib.it': {
@@ -412,6 +412,15 @@ class Tests(unittest.TestCase):
                 'query': None,
                 'fragment': None
             },
+            'mAilTO:': {
+                'scheme': 'mailto',
+                'userinfo': None,
+                'host': None,
+                'port': debatable_80,
+                'path':None,
+                'query': None,
+                'fragment': None
+            },
             'mailto:asdasd': {
                 'scheme': 'mailto',
                 'userinfo': 'asdasd',
@@ -433,6 +442,15 @@ class Tests(unittest.TestCase):
 
             #NEWS
             'news:': {
+                'scheme': 'news',
+                'userinfo': None,
+                'host': None,
+                'port': debatable_80,
+                'path':None,
+                'query': None,
+                'fragment': None
+            },
+            'NEwS:': {
                 'scheme': 'news',
                 'userinfo': None,
                 'host': None,
@@ -470,6 +488,15 @@ class Tests(unittest.TestCase):
                 'query': None,
                 'fragment': None
             },
+            'TeL:': {
+                'scheme': 'tel',
+                'userinfo': None,
+                'host': None,
+                'port': debatable_80,
+                'path':None,
+                'query': None,
+                'fragment': None
+            },
             'fax:': {
                 'scheme': 'fax',
                 'userinfo': None,
@@ -479,7 +506,7 @@ class Tests(unittest.TestCase):
                 'query': None,
                 'fragment': None
             },
-            'fax:+39-327-9856-123': {
+            'FAX:+39-327-9856-123': {
                 'scheme': 'fax',
                 'userinfo': '+39-327-9856-123',
                 'host': None,
@@ -500,6 +527,15 @@ class Tests(unittest.TestCase):
 
             #ZOS
             'zos:': {
+                'scheme': 'zos',
+                'userinfo': None,
+                'host': None,
+                'port': 80,
+                'path':None,
+                'query': None,
+                'fragment': None
+            },
+            'ZOS:': {
                 'scheme': 'zos',
                 'userinfo': None,
                 'host': None,

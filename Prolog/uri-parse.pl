@@ -110,21 +110,21 @@ controllo_insensitive_ric([H1 | T1], [H2 | T2]) :-
     !,
     controllo_insensitive_ric(T1, T2).
 
-uri_parse_start(Scheme, Userinfo, Host, [], [], [], []) -->
+uri_parse_start(Scheme, Userinfo, Host, ['8', '0'], [], [], []) -->
     %%%{ string_chars("mailto", Scheme) },
     scheme(Scheme),
     [':'],
     { controllo_insensitive("mailto", Scheme), ! },
     mailto(Userinfo, Host).
 
-uri_parse_start(Scheme, [], Host, [], [], [], []) -->
+uri_parse_start(Scheme, [], Host, ['8', '0'], [], [], []) -->
     %%%{ string_chars("news", Scheme) },
     scheme(Scheme),
     [':'],
     { controllo_insensitive("news", Scheme), ! },
     news_host(Host).
 
-uri_parse_start(Scheme, Userinfo, [], [], [], [], []) -->
+uri_parse_start(Scheme, Userinfo, [], ['8', '0'], [], [], []) -->
     %%%{ tel_fax(Tel_Fax), string_chars(Tel_Fax, Scheme) },
     scheme(Scheme),
     [':'],
