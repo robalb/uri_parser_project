@@ -20,6 +20,10 @@
     (coerce l 'string)
   ))
 
+(defun list-to-int (l) 
+  (parse-integer (list-to-string l))
+)
+
 ;(set  'lista (string-to-list stringa))
 (defun urip (lista)
   ;(write lista)
@@ -39,7 +43,7 @@
     (list (list "Scheme:" scheme)
           (list "Userinfo:" (list-to-string userinfo))
           (list "Host:" (list-to-string host))
-          (list "Port:" (if (null port) 80 port))
+          (list "Port:" (if (null port) 80 (list-to-int port)))
           (list "Path:" (list-to-string path))
           (list "Query:" (list-to-string query))
           (list "Fragment:" (list-to-string fragment)))
