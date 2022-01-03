@@ -36,23 +36,13 @@
     (make-uri-aux "" nil nil -1 nil nil nil)))
 
 (defun make-uri-aux (scheme userinfo host port path query fragment)
-  (if (null port)
-      (list (list "Scheme:" scheme)
-            (list "Userinfo:" (list-to-string userinfo))
-            (list "Host:" (list-to-string host))
-            (list "Port:" 80)
-            (list "Path:" (list-to-string path))
-            (list "Query:" (list-to-string query))
-            (list "Fragment:" (list-to-string fragment)))
-    
     (list (list "Scheme:" scheme)
           (list "Userinfo:" (list-to-string userinfo))
           (list "Host:" (list-to-string host))
-          (list "Port:" port) ;;;SISTEMARE!! DEVE RITORNARE INTEGER
+          (list "Port:" (if (null port) 80 port))
           (list "Path:" (list-to-string path))
           (list "Query:" (list-to-string query))
           (list "Fragment:" (list-to-string fragment)))
-    )
   )
 
 (defun uri-scheme (uri-structure)
@@ -83,12 +73,11 @@
   (second (seventh uri-structure))
   )
 
-(defun uri-display (uri-structure )
-  (if (null uri-structure)
-    t
+(defun uri-display (uri-structure &optional (out-stream t))
+  (or (null uri-structure)
     (progn
-      (print-uri-element (first uri-structure) t)
-      (uri-display (rest uri-structure) )
+      (print-uri-element (first uri-structure) out-stream )
+      (uri-display (rest uri-structure) out-stream)
     )
   )
 )
