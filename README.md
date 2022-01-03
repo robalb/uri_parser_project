@@ -13,6 +13,20 @@ Implementano una versione semplificata dell' [RFC3986](https://datatracker.ietf.
 
 @robalb
 
+
+## Test automatizzati
+
+Per eseguire i test:
+
+- [installare docker](https://docs.docker.com/get-docker/)
+
+- eseguire i comandi
+
+  ```console
+  docker build -t uri_parser_tests .
+  docker run uri_parser_tests
+  ```
+
 ## Specifiche trascritte in eBNF
 Di seguito è riportata la sintassi degli URI come descritta nella consegna, trascritta in [W3C-style](https://www.w3.org/TR/2010/REC-xquery-20101214/#EBNFNotation) Extended Backus–Naur form.
 
@@ -76,19 +90,6 @@ Alpha     ::= [0-9a-zA-Z]
 
 ```
 
-
-## Test automatizzati
-
-Per eseguire i test:
-
-- [installare docker](https://docs.docker.com/get-docker/)
-
-- eseguire i comandi
-
-  ```console
-  docker build -t uri_parser_tests .
-  docker run uri_parser_tests
-  ```
 ## Crediti
 
 diagrammi generati tramite https://github.com/GuntherRademacher/rr
