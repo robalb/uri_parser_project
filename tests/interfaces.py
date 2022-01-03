@@ -3,11 +3,14 @@ https://github.com/yuce/pyswip
 https://docs.python.org/3/library/subprocess.html
 """
 from pyswip import Prolog
-from urllib.parse import urlparse
+import subprocess
 import os
+import re
 
 class MalformedException(Exception):
     pass
+
+
 
 class ParserInterface:
     """Interface"""
@@ -19,6 +22,8 @@ class ParserInterface:
     def parse(self, uri:str) -> dict:
         """Parse an uri, and returns its components"""
         pass
+
+
 
 class PrologParser(ParserInterface):
     def __init__(self):
@@ -42,57 +47,78 @@ class PrologParser(ParserInterface):
         return list(self.prolog.query(query))
 
     def parse(self, uri):
-        prolog_query = f'''
-            uri_parse("{uri}", uri(Scheme,
-              Userinfo,
-              Host,
-              Port,
-              Path,
-              Query,
-              Fragment))'''
-        query = self.query(prolog_query)
-        if len(query) == 0:
-            raise MalformedException(uri)
-        row = query[0]
-        row = self.__normalize_none(row)
-        return {
-            'scheme': row['Scheme'],
-            'userinfo': row['Userinfo'],
-            'host': row['Host'],
-            'port': row['Port'],
-            'path': row['Path'],
-            'query': row['Query'],
-            'fragment': row['Fragment']
-        }
+      prolog_query = f'''
+          uri_parse("{uri}", uri(Scheme,
+            Userinfo,
+            Host,
+            Port,
+            Path,
+            Query,
+            Fragment))'''
+      query = self.query(prolog_query)
+      if len(query) == 0:
+          raise MalformedException(uri)
+      row = query[0]
+      row = self.__normalize_none(row)
+      return {
+          'scheme': row['Scheme'],
+          'userinfo': row['Userinfo'],
+          'host': row['Host'],
+          'port': row['Port'],
+          'path': row['Path'],
+          'query': row['Query'],
+          'fragment': row['Fragment']
+      }
 
-class UrllibParser(ParserInterface):
-    def __init__(self):
-        pass
 
-    def parse(self, uri):
-        out = urlparse(uri)
-        port = out.port
-        if port is None:
-            if out.scheme == 'http':
-                port = '80'
-            elif out.scheme == 'https':
-                port = '443'
 
-        def normalize_none(v):
-            """replace empty strings with none"""
-            if isinstance(v, str) and len(v) == 0:
-                return None
-            return v
+class LispParser(ParserInterface):
+  def __init__(self):
+    pass
 
-        return {
-            'scheme': normalize_none(out.scheme),
-            'userinfo': normalize_none(out.username),
-            'host': normalize_none(out.hostname),
-            'port': normalize_none(port),
-            'path': normalize_none(out.path),
-            'query': normalize_none(out.query),
-            'fragment': normalize_none(out.fragment)
-        }
+  def parse(self, uri):
+    dirname = os.path.dirname(__file__)
+    filename = os.path.join(dirname, '../Lisp/uri-parse.lisp')
+    lisp_query = f'(uri-display (uri-parse "{uri}"))'
+    cmd = [
+    'sbcl',
+    '--load',
+    filename,
+    '--eval',
+    lisp_query,
+    '--non-interactive'
+    ]
+    out = subprocess.run(cmd, capture_output=True)
+    #get the stdout output
+    out_string = out.stdout.decode()
+    #remove the copyright header
+    out_lines = out_string.split("\n")[-8:-1]
+    #extract the uri components
+    components = []
+    for index, line in enumerate(out_lines):
+      m = re.search(' (\S+?)$', line)
+      if m:
+        value = m.group(1)
+        #handle port transform
+        if index == 3 and value != 'NIL':
+          value = int(value)
+        #handle NIL transform
+        if value == 'NIL':
+          value = None
+        components.append(value)
+      else:
+        raise MalformedException(uri)
+
+    return {
+        'scheme': components[0],
+        'userinfo': components[1],
+        'host': components[2],
+        'port': components[3],
+        'path': components[4],
+        'query': components[5],
+        'fragment': components[6]
+    }
+
 
 # prolog = PrologParser()
 # python = UrllibParser()
@@ -104,3 +130,7 @@ class UrllibParser(ParserInterface):
 #     print("PYTHON", python.parse(uri))
 
 # parse("mailto://foo/bar?q")
+
+#lisp = LispParser()
+#print(lisp.parse("http://asd.com"))
+

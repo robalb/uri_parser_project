@@ -1,5 +1,5 @@
 import unittest
-from .interfaces import PrologParser, UrllibParser, MalformedException
+from .interfaces import PrologParser, LispParser, MalformedException
 
 __unittest = True
 
@@ -12,8 +12,8 @@ class Tests(unittest.TestCase):
     """
     @classmethod
     def setUpClass(self):
-        #TODO: make this parametizable
-        self.parser = PrologParser()
+        self.parser = LispParser()
+        #self.parser = PrologParser()
 
     def test_fail_parse(self):
 

@@ -1,5 +1,5 @@
 import unittest
-from .interfaces import PrologParser, UrllibParser, MalformedException
+from .interfaces import PrologParser, MalformedException
 import time,datetime
 
 __unittest = True
