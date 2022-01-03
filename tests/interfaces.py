@@ -77,6 +77,7 @@ class LispParser(ParserInterface):
     pass
 
   def parse(self, uri):
+    #Danger: this allows arbitrary Lisp code execution
     dirname = os.path.dirname(__file__)
     filename = os.path.join(dirname, '../Lisp/uri-parse.lisp')
     lisp_query = f'(uri-display (uri-parse "{uri}"))'

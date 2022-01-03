@@ -177,7 +177,7 @@
         ;(write "path:")
         ;(write path)
         (if (eq (first (second path)) #\?)
-            (let ((query (query-parse (second path))))
+            (let ((query (query-parse (rest (second path)))))
               (if (eq (first (second query)) #\#)
                   (let ((fragment (fragment-parse (rest (second query)))))
                     (list (first path) (first query) (first fragment) (second fragment)))

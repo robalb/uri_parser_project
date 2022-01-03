@@ -7,8 +7,6 @@ class Tests(unittest.TestCase):
     """Basic tests for the subset of rfc3986 described in the assignment
     https://elearning.unimib.it/pluginfile.php/1141330/mod_resource/content/13/20220115%20LP%20E1P%20URI%20v2.pdf
     https://datatracker.ietf.org/doc/html/rfc3986
-    most of the tests have been ported from:
-    https://github.com/sporkmonger/addressable/blob/master/spec/addressable/uri_spec.rb
     """
     @classmethod
     def setUpClass(self):
