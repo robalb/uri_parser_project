@@ -66,6 +66,23 @@
   (second (seventh uri-structure))
   )
 
+(defun uri-display (uri-structure)
+  (if (null uri-structure)
+    t
+    (progn
+      (print-uri-element (first uri-structure))
+      (uri-display (rest uri-structure))
+    )
+  )
+)
+
+(defun print-uri-element (element)
+  (progn
+    ;il primo parametro di format è la stream da utilizzare. t per stdout
+    (format t "~11A ~A~%" (first element) (second element))
+  )
+)
+
 (defun uri-parse (stringa)
   (the-uri-parse (string-to-list (string-downcase stringa)))
   )
