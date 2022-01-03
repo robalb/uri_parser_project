@@ -13,8 +13,12 @@
 
 (defun string-to-list (string)
   (coerce string 'list))
-(defun list-to-string (list)
-  (coerce list 'string))
+
+(defun list-to-string (l)
+  (if (null l)
+    l
+    (coerce l 'string)
+  ))
 
 ;(set  'lista (string-to-list stringa))
 (defun urip (lista)
@@ -79,21 +83,18 @@
   (second (seventh uri-structure))
   )
 
-(defun uri-display (uri-structure)
+(defun uri-display (uri-structure )
   (if (null uri-structure)
     t
     (progn
-      (print-uri-element (first uri-structure))
-      (uri-display (rest uri-structure))
+      (print-uri-element (first uri-structure) t)
+      (uri-display (rest uri-structure) )
     )
   )
 )
 
-(defun print-uri-element (element)
-  (progn
-    ;il primo parametro di format è la stream da utilizzare. t per stdout
-    (format t "~11A ~A~%" (first element) (second element))
-  )
+(defun print-uri-element (element out-stream)
+  (format out-stream "~11A ~A~%" (first element) (second element))
 )
 
 (defun uri-parse (stringa)
