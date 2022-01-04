@@ -54,6 +54,7 @@ class Tests(unittest.TestCase):
             's://host:', #value missing
             #PATH
             's://host//', #path can't start with slash
+            's://host//path',
             's://host/path//',
             's://host/path/', #path can't end with slash
             's://host/path/?asd',

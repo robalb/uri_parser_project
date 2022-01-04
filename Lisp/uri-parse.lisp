@@ -1,7 +1,8 @@
-;;; -*- Mode:Lisp -*-
-
-;;; begin of file: uri_parse.pl
-
+;;;; -*- Mode:Lisp -*-
+;;;;
+;;;; begin of file: uri-parse.pl
+;;;; This program implements a URI parser - a simplified version of Rfc3986,
+;;;; and detects malformed URIs by crashing
 
 (defun error-mine (where what)
   (write "Errore nella stringa inserita")
@@ -207,17 +208,17 @@
 (defun host-parse (lista)
   (if (null lista)
       (list nil lista)
-    (let ((identificatore (one-or-more-satisfying lista 'hostp)))
+      (let ((identificatore (one-or-more-satisfying lista 'hostp)))
       ;(write "Identificatore:")
       ;(write identificatore)
-      (if (eql (first (second identificatore)) #\.)
-          (let ((risultato-ric-host-parse (host-parse (rest (second identificatore)))))
-            ;(write "risultato-ric:")
-            ;(write risultato-ric-host-parse)
-            (list (append (append (first identificatore) (list #\.)) (first risultato-ric-host-parse)) (second risultato-ric-host-parse))) ; *
-        (list (first identificatore) (second identificatore))
-        )))
-  )
+        (if (and (eql (first (second identificatore)) #\.)
+              (hostp (second (second identificatore))))
+            (let ((risultato-ric-host-parse (host-parse (rest (second identificatore)))))
+              ;(write "risultato-ric:")
+              ;(write risultato-ric-host-parse)
+              (list (append (append (first identificatore) (list #\.)) (first risultato-ric-host-parse))
+                (second risultato-ric-host-parse))) ; *
+            (list (first identificatore) (second identificatore))))))
 
 (defun port-parse (lista)
   (one-or-more-satisfying lista 'digitp))
@@ -243,17 +244,20 @@
 (defun path-parse (lista)
   (if (null lista)
       (list nil lista)
-    (let ((identificatore (one-or-more-satisfying lista 'identificatorep)))
-      ;(write "Identificatore:")
-      ;(write identificatore)
-      (if (eql (first (second identificatore)) #\/)
-          (let ((risultato-ric-path-parse (path-parse (rest (second identificatore)))))
-            ;(write "risultato-ric:")
-            ;(write risultato-ric-host-parse)
-            (list (append (append (first identificatore) (list #\/)) (first risultato-ric-path-parse)) (second risultato-ric-path-parse))) ; *
-        (list (first identificatore) (second identificatore))
-        )))
-  )
+      (let ((identificatore (one-or-more-satisfying lista 'identificatorep)))
+        ;(write "Identificatore:")
+        ;(write identificatore)
+        (if (and (eql (first (second identificatore)) #\/)
+                 (identificatorep (second (second identificatore)) ))
+            (let ((risultato-ric-path-parse (path-parse (rest (second identificatore)))))
+              ;(write "risultato-ric:")
+              ;(write risultato-ric-host-parse)
+              (list
+                (append
+                  (append (first identificatore) (list #\/))
+                  (first risultato-ric-path-parse))
+                (second risultato-ric-path-parse))) ; *
+            (list (first identificatore) (second identificatore))))))
 
 (defun query-parse (lista)
   (one-or-more-satisfying lista 'queryp))
@@ -300,8 +304,8 @@
 (defun one-or-more-satisfying (lista pred)
   (if (or (null lista) (not (funcall pred (first lista))))
       (list nil lista)
-    (let ((risultato-ric (one-or-more-satisfying (rest lista) pred)))
-      (list (cons (first lista) (first risultato-ric)) ;al posto della seconda "list" c'era un cons, ma dopo non potevo fare append #\. in host, alla riga con il commento "*"
+      (let ((risultato-ric (one-or-more-satisfying (rest lista) pred)))
+        (list (cons (first lista) (first risultato-ric)) ;al posto della seconda "list" c'era un cons, ma dopo non potevo fare append #\. in host, alla riga con il commento "*"
             (second risultato-ric))))) 
 
 (defun must-end-with (lista char)
