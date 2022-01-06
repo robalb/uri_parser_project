@@ -122,6 +122,7 @@
     )
   )
 
+;;; naming ideas: must-start-with
 (defun expr-starting-with (char expr lista)
   "Parses an expression of the form ['Char' <Expr>]"
   (if (eql (first lista) char)
@@ -130,12 +131,12 @@
           (funcall expr (rest lista)))
       (list nil lista)))
 
+
 (defun leftover (lista)
   "takes in input the list returned from an expression function, and returns 
     the part of the input string that was not parsed by that expression.
     Yes, this is just returning the last element of a list"
-  (first (last lista))
-)
+  (first (last lista)))
 
 (defun parse-mailto (lista)
   (if (null lista)
@@ -144,23 +145,11 @@
         (host (expr-starting-with #\@ 'host-parse (leftover userinfo))))
         (list (leftover host) (first userinfo) (first host) nil nil nil nil))))
 
-; (defun parse-mailto (lista)
-;   (if (null lista)
-;       (list nil nil nil nil nil nil nil)
-;       (let ((userinfo (userinfo-parse lista)))
-;         (if (eql (first (second userinfo)) #\@)
-;             (let ((host (host-parse (rest (second userinfo)))))
-;               (list (second host) (first userinfo) (first host) nil nil nil nil))
-;             (list (second userinfo) (first userinfo) nil nil nil nil nil)))))
-
 (defun parse-news (lista)
   (if (null lista)
       (list nil nil nil nil nil nil nil)
-    (let ((host (host-parse lista)))
-      (list (second host) nil (first host) nil nil nil nil))
-    ;(list "Host:" (first (host-parse lista)))
-    )
-  )
+      (let ((host (host-parse lista)))
+        (list (second host) nil (first host) nil nil nil nil))))
 
 (defun parse-telfax (lista)
   (if (null lista)
@@ -220,13 +209,7 @@
   (must-end-with (one-or-more-satisfying lista 'identificatorep) #\:))
 
 (defun userinfo-parse (lista &optional ends-with)
-  (let ((userinfo (must-end-with (one-or-more-satisfying lista 'identificatorep) ends-with)))
-    userinfo
-   ; (if (and (eq (first userinfo) (second userinfo)) (eq (first userinfo) nil))
-   ;     (list nil lista)
-   ;   userinfo)
-    )
-  )
+  (must-end-with (one-or-more-satisfying lista 'identificatorep) ends-with))
 
 (defun host-parse (lista)
   (if (null lista)
