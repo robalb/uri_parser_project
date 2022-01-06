@@ -2,14 +2,18 @@
 ;;;;
 ;;;; begin of file: uri-parse.pl
 ;;;; This program implements a URI parser - a simplified version of Rfc3986,
-;;;; and detects malformed URIs by crashing
 
-(defun error-mine (where what)
-  (write "Errore nella stringa inserita")
-  (write where)
-  (write what)
-  nil
-  )
+;;; This parser is based on mutually recursive functions/expressions:
+;;; Every expression takes a list of character in input, and returns a list 
+;;; in output. The length of the list is variable. The last element is a list
+;;; containing the characters that were not parsed from the input list.
+;;; The other elements are values such as host, path, query... extracted from
+;;; the input list
+
+
+(defun halt-parser (reason)
+"Halt the parser, by signaling a fatal error"
+  (error "Invalid URI: ~A" reason))
 
 
 (defun string-to-list (string)
@@ -32,6 +36,8 @@
       t
     nil))
 
+;;; TODO: every expression hasthe leftover as the last element of its returned list,
+;;; but here the leftover is expected to be the first element. it's confusing
 (defun make-uri (scheme rest)
   ;(write rest)
   ;(write (first rest))
@@ -91,6 +97,7 @@
   (format out-stream "~11A ~A~%" (first element) (second element))
 )
 
+;;; TODO: vabene string-downcase? uri-path di "qwe:/PaTh" dovrebbe restituire PaTh
 (defun uri-parse (stringa)
   (the-uri-parse (string-to-list (string-downcase stringa)))
   )
@@ -115,20 +122,36 @@
     )
   )
 
+(defun expr-starting-with (char expr lista)
+  "Parses an expression of the form ['Char' <Expr>]"
+  (if (eql (first lista) char)
+      (if (null (rest lista))
+          (error "uri parse error callifstartingwith")
+          (funcall expr (rest lista)))
+      (list nil lista)))
+
+(defun leftover (lista)
+  "takes in input the list returned from an expression function, and returns 
+    the part of the input string that was not parsed by that expression.
+    Yes, this is just returning the last element of a list"
+  (first (last lista))
+)
+
 (defun parse-mailto (lista)
   (if (null lista)
       (list nil nil nil nil nil nil nil)
-    (let ((userinfo (userinfo-parse lista)))
-      (if (eql (first (second userinfo)) #\@)
-          (let ((host (host-parse (second userinfo))))
-            (list (second host) (first userinfo) (first host) nil nil nil nil))
-       ;(list (list "Userinfo:" (first userinfo)) (list "Host:" (host-parse (second userinfo))))
-       ;(list (list "Userinfo:" (first userinfo)) (list "Host:" nil)))))
-        (list (second userinfo) (first userinfo) nil nil nil nil nil)
-        )
-      )
-    )
-  )
+      (let* ((userinfo (userinfo-parse lista))
+        (host (expr-starting-with #\@ 'host-parse (leftover userinfo))))
+        (list (leftover host) (first userinfo) (first host) nil nil nil nil))))
+
+; (defun parse-mailto (lista)
+;   (if (null lista)
+;       (list nil nil nil nil nil nil nil)
+;       (let ((userinfo (userinfo-parse lista)))
+;         (if (eql (first (second userinfo)) #\@)
+;             (let ((host (host-parse (rest (second userinfo)))))
+;               (list (second host) (first userinfo) (first host) nil nil nil nil))
+;             (list (second userinfo) (first userinfo) nil nil nil nil nil)))))
 
 (defun parse-news (lista)
   (if (null lista)
@@ -251,19 +274,36 @@
   (let ((identificatore (zero-or-more-satisfying lista 'identificatorep)))
     (if (null (first identificatore))
         (list nil lista)
-    ;(write "Identificatore:")
-    ;(write identificatore)
-        (if (and (eql (first (second identificatore)) #\/)
-                (identificatorep (second (second identificatore)) ))
-            (let ((risultato-ric-path-parse (path-parse (rest (second identificatore)))))
-              ;(write "risultato-ric:")
-              ;(write risultato-ric-host-parse)
-              (list
-                (append
-                  (append (first identificatore) (list #\/))
-                  (first risultato-ric-path-parse))
-                (second risultato-ric-path-parse))) ; *
-            (list (first identificatore) (second identificatore))))))
+        (let ((res (pred-starting-with
+                     (second identificatore) #\/ 'identificatorep)))
+          (list (append
+                  (first identificatore)
+                  (first res))
+                (second res))))))
+
+; (defun path-parse-rec (lista)
+;   (if (eq (first lista) #\/)
+;         (let ((res (one-or-more-satisfying (rest lista) 'identificatorep)))
+;           (let ((res-rec (path-parse-rec (second res))))
+;             (list
+;               (append
+;                     (append (list #\/) (first res))
+;                     (first res-rec))
+;               (second res-rec))))
+;         (list nil lista)))
+
+(defun pred-starting-with (lista char predicato)
+  "parses an expression of the form ['Char' <pred> ]* "
+  (if (eq (first lista) char)
+        (let ((res (one-or-more-satisfying (rest lista) predicato)))
+          (let ((res-rec (path-parse-rec (second res))))
+            (list
+              (append
+                    (append (list char) (first res))
+                    (first res-rec))
+              (second res-rec))))
+        (list nil lista)))
+
 
 (defun query-parse (lista)
   (one-or-more-satisfying lista 'queryp))
