@@ -207,18 +207,21 @@
 
 (defun host-parse (lista)
   (if (null lista)
-      (list nil lista)
-      (let ((identificatore (one-or-more-satisfying lista 'hostp)))
-        (if (null (first identificatore))
-            (list nil lista)
-            (if (and (eql (first (second identificatore)) #\.)
-                  (hostp (second (second identificatore))))
-                (let ((risultato-ric-host-parse (host-parse (rest (second identificatore)))))
-                  ;(write "risultato-ric:")
-                  ;(write risultato-ric-host-parse)
-                  (list (append (append (first identificatore) (list #\.)) (first risultato-ric-host-parse))
-                    (second risultato-ric-host-parse))) ; *
-                (list (first identificatore) (second identificatore)))))))
+      (error "invalid uri in hostparse")
+      (if (and (eq (length lista) 1)
+            (identificatorep (first lista)))
+          (list (first lista) (rest lista))
+          (let ((identificatore (one-or-more-satisfying lista 'hostp)))
+            (if (null (first identificatore))
+                (list nil lista)
+                (if (and (eql (first (second identificatore)) #\.)
+                      (hostp (second (second identificatore))))
+                    (let ((risultato-ric-host-parse (host-parse (rest (second identificatore)))))
+                      ;(write "risultato-ric:")
+                      ;(write risultato-ric-host-parse)
+                      (list (append (append (first identificatore) (list #\.)) (first risultato-ric-host-parse))
+                        (second risultato-ric-host-parse))) ; *
+                    (list (first identificatore) (second identificatore))))))))
 
 (defun port-parse (lista)
   (one-or-more-satisfying lista 'digitp))
@@ -245,24 +248,22 @@
         (funcall (predicate  (second lista) ))))
 
 (defun path-parse (lista)
-  (if (null lista)
-      (list nil lista)
-      (let ((identificatore (one-or-more-satisfying lista 'identificatorep)))
-        (if (null (first identificatore))
-            (list nil lista)
-        ;(write "Identificatore:")
-        ;(write identificatore)
-            (if (and (eql (first (second identificatore)) #\/)
-                    (identificatorep (second (second identificatore)) ))
-                (let ((risultato-ric-path-parse (path-parse (rest (second identificatore)))))
-                  ;(write "risultato-ric:")
-                  ;(write risultato-ric-host-parse)
-                  (list
-                    (append
-                      (append (first identificatore) (list #\/))
-                      (first risultato-ric-path-parse))
-                    (second risultato-ric-path-parse))) ; *
-                (list (first identificatore) (second identificatore)))))))
+  (let ((identificatore (zero-or-more-satisfying lista 'identificatorep)))
+    (if (null (first identificatore))
+        (list nil lista)
+    ;(write "Identificatore:")
+    ;(write identificatore)
+        (if (and (eql (first (second identificatore)) #\/)
+                (identificatorep (second (second identificatore)) ))
+            (let ((risultato-ric-path-parse (path-parse (rest (second identificatore)))))
+              ;(write "risultato-ric:")
+              ;(write risultato-ric-host-parse)
+              (list
+                (append
+                  (append (first identificatore) (list #\/))
+                  (first risultato-ric-path-parse))
+                (second risultato-ric-path-parse))) ; *
+            (list (first identificatore) (second identificatore))))))
 
 (defun query-parse (lista)
   (one-or-more-satisfying lista 'queryp))
@@ -307,9 +308,15 @@
   t)
 
 (defun one-or-more-satisfying (lista pred)
+  (let ((res (zero-or-more-satisfying lista pred)))
+  (if (null (first res))
+      (error "invalid uri")
+      res)
+  ))
+(defun zero-or-more-satisfying (lista pred)
   (if (or (null lista) (not (funcall pred (first lista))))
       (list nil lista)
-      (let ((risultato-ric (one-or-more-satisfying (rest lista) pred)))
+      (let ((risultato-ric (zero-or-more-satisfying (rest lista) pred)))
         (list (cons (first lista) (first risultato-ric)) ;al posto della seconda "list" c'era un cons, ma dopo non potevo fare append #\. in host, alla riga con il commento "*"
             (second risultato-ric))))) 
 
