@@ -38,7 +38,7 @@
   ;(write scheme)
   (if (urip (first rest))
       (make-uri-aux scheme (second rest) (third rest) (fourth rest) (fifth rest) (sixth rest) (seventh rest))
-    (make-uri-aux "" nil nil -1 nil nil nil)))
+    (make-uri-aux "" nil nil (string-to-list "-1") nil nil nil)))
 
 (defun make-uri-aux (scheme userinfo host port path query fragment)
     (list (list "Scheme:" scheme)
@@ -174,7 +174,7 @@
 
 (defun path-query-fragment-parse (lista scheme)
   (if (eq (first lista) #\/)
-      (let ((path (path-parse-choice (rest lista) scheme)));;attenzione ad host-parse-choice!! path in zos è effettivamente obbligatorio?
+      (let ((path (path-parse-choice (rest lista) scheme)));;attenzione ad host-parse-choice!! path in zos ï¿½ effettivamente obbligatorio?
         ;(write "path:")
         ;(write path)
         (if (eq (first (second path)) #\?)
@@ -209,16 +209,16 @@
   (if (null lista)
       (list nil lista)
       (let ((identificatore (one-or-more-satisfying lista 'hostp)))
-      ;(write "Identificatore:")
-      ;(write identificatore)
-        (if (and (eql (first (second identificatore)) #\.)
-              (hostp (second (second identificatore))))
-            (let ((risultato-ric-host-parse (host-parse (rest (second identificatore)))))
-              ;(write "risultato-ric:")
-              ;(write risultato-ric-host-parse)
-              (list (append (append (first identificatore) (list #\.)) (first risultato-ric-host-parse))
-                (second risultato-ric-host-parse))) ; *
-            (list (first identificatore) (second identificatore))))))
+        (if (null (first identificatore))
+            (list nil lista)
+            (if (and (eql (first (second identificatore)) #\.)
+                  (hostp (second (second identificatore))))
+                (let ((risultato-ric-host-parse (host-parse (rest (second identificatore)))))
+                  ;(write "risultato-ric:")
+                  ;(write risultato-ric-host-parse)
+                  (list (append (append (first identificatore) (list #\.)) (first risultato-ric-host-parse))
+                    (second risultato-ric-host-parse))) ; *
+                (list (first identificatore) (second identificatore)))))))
 
 (defun port-parse (lista)
   (one-or-more-satisfying lista 'digitp))
@@ -239,25 +239,30 @@
     (list nil lista)
     )
   )
-           
+
+(defun hack-equal (lista char predicate)
+  (and (eql (first lista) char)
+        (funcall (predicate  (second lista) ))))
 
 (defun path-parse (lista)
   (if (null lista)
       (list nil lista)
       (let ((identificatore (one-or-more-satisfying lista 'identificatorep)))
+        (if (null (first identificatore))
+            (list nil lista)
         ;(write "Identificatore:")
         ;(write identificatore)
-        (if (and (eql (first (second identificatore)) #\/)
-                 (identificatorep (second (second identificatore)) ))
-            (let ((risultato-ric-path-parse (path-parse (rest (second identificatore)))))
-              ;(write "risultato-ric:")
-              ;(write risultato-ric-host-parse)
-              (list
-                (append
-                  (append (first identificatore) (list #\/))
-                  (first risultato-ric-path-parse))
-                (second risultato-ric-path-parse))) ; *
-            (list (first identificatore) (second identificatore))))))
+            (if (and (eql (first (second identificatore)) #\/)
+                    (identificatorep (second (second identificatore)) ))
+                (let ((risultato-ric-path-parse (path-parse (rest (second identificatore)))))
+                  ;(write "risultato-ric:")
+                  ;(write risultato-ric-host-parse)
+                  (list
+                    (append
+                      (append (first identificatore) (list #\/))
+                      (first risultato-ric-path-parse))
+                    (second risultato-ric-path-parse))) ; *
+                (list (first identificatore) (second identificatore)))))))
 
 (defun query-parse (lista)
   (one-or-more-satisfying lista 'queryp))
