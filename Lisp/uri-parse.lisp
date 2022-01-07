@@ -209,7 +209,7 @@
 
 
 (defun authorithy-parse (lista)
-  "Parse the expression '//' [ userinfo '@'] host [':' port ]"
+  "Parse the expression '//' [ userinfo '@'] host [':' port]"
   (if (and (eql (first lista) #\/) (eql (second lista) #\/))
       (let* (
           (userinfo (userinfo-parse (rest (rest lista)) #\@))
@@ -219,20 +219,14 @@
       (list nil nil nil lista)))
 
 (defun path-query-fragment-parse (lista scheme)
+  "Parse the expression '/' [path] ['?' query] ['#' fragment]"
   (if (eq (first lista) #\/)
-      (let ((path (path-parse-choice (rest lista) scheme)));;attenzione ad host-parse-choice!! path in zos � effettivamente obbligatorio?
-        ;(write "path:")
-        ;(write path)
-        (if (eq (first (second path)) #\?)
-            (let ((query (query-parse (rest (second path)))))
-              (if (eq (first (second query)) #\#)
-                  (let ((fragment (fragment-parse (rest (second query)))))
-                    (list (first path) (first query) (first fragment) (second fragment)))
-                (list (first path) (first query) nil (second query))))
-          (list (first path) nil nil (second path))))
-    (list nil nil nil lista))
-                    
-  )
+      (let* (
+          (path (path-parse-choice (rest lista) scheme))
+          (query (preceded-by-char (leftover path) #\? 'query-parse ))
+          (fragment (preceded-by-char (leftover query) #\# 'fragment-parse )))
+        (list (first path) (first query) (first fragment) (leftover fragment)))
+      (list nil nil nil lista)))
 
 (defun path-parse-choice (lista scheme)
   (if (string= scheme "zos")
@@ -271,22 +265,20 @@
   )
 
 (defun path-parse (lista)
-  (let ((identificatore (zero-or-more-satisfying lista 'identificatorep)))
-    (if (null (first identificatore))
+  (let ((res (zero-or-more-satisfying lista 'identificatorep)))
+    (if (null (first res))
         (list nil lista)
-        (let ((res (recursive-char-identifier
-                     (second identificatore) #\/ 'identificatorep)))
-          (list (append
-                  (first identificatore)
-                  (first res))
-                (second res))))))
+        (let ((res-rec
+            (recursive-char-identifier (leftover res) #\/ 'identificatorep)))
+          (list (append (first res) (first res-rec))
+            (leftover res-rec))))))
 
 
 (defun query-parse (lista)
   (one-or-more-satisfying lista 'queryp))
 
 (defun fragment-parse (lista)
-  (one-or-more-satisfying lista 'any))
+  (one-or-more-satisfying lista 'anyp))
 
 (defun identificatorep (char)
   (and (char/= char #\/)
@@ -321,7 +313,7 @@
   (and (char<= char #\9) (char>= char #\0))
   )
 
-(defun any (char)
+(defun anyp (char)
   t)
 
 
