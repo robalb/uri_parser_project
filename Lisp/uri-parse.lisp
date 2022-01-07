@@ -23,22 +23,13 @@
 (defun list-to-int (l)
   (parse-integer (list-to-string l)))
 
-;(set  'lista (string-to-list stringa))
-(defun urip (lista)
-  ;(write lista)
-  (if (null lista)
-      t
-    nil))
-
 ;;; TODO: every expression hasthe leftover as the last element of its returned list,
 ;;; but here the leftover is expected to be the first element. it's confusing
 (defun make-uri (scheme rest)
-  ;(write rest)
-  ;(write (first rest))
-  ;(write scheme)
-  (if (urip (first rest))
-      (make-uri-aux scheme (second rest) (third rest) (fourth rest) (fifth rest) (sixth rest) (seventh rest))
-    (make-uri-aux "" nil nil (string-to-list "-1") nil nil nil)))
+  (if (null (first rest))
+      (make-uri-aux scheme (second rest) (third rest) (fourth rest)
+        (fifth rest) (sixth rest) (seventh rest))
+      (halt-parser)))
 
 (defun make-uri-aux (scheme userinfo host port path query fragment)
     (list (list "Scheme:" scheme)
@@ -47,56 +38,43 @@
           (list "Port:" (if (null port) 80 (list-to-int port)))
           (list "Path:" (list-to-string path))
           (list "Query:" (list-to-string query))
-          (list "Fragment:" (list-to-string fragment)))
-  )
+          (list "Fragment:" (list-to-string fragment))))
 
 (defun uri-scheme (uri-structure)
-  (second (first uri-structure))
-  )
+  (second (first uri-structure)))
 
 (defun uri-userinfo (uri-structure)
-  (second (second uri-structure))
-  )
+  (second (second uri-structure)))
 
 (defun uri-host (uri-structure)
-  (second (third uri-structure))
-  )
+  (second (third uri-structure)))
 
 (defun uri-port (uri-structure)
-  (second (fourth uri-structure))
-  )
+  (second (fourth uri-structure)))
 
 (defun uri-path (uri-structure)
-  (second (fifth uri-structure))
-  )
+  (second (fifth uri-structure)))
 
 (defun uri-query (uri-structure)
-  (second (sixth uri-structure))
-  )
+  (second (sixth uri-structure)))
 
 (defun uri-fragment (uri-structure)
-  (second (seventh uri-structure))
-  )
+  (second (seventh uri-structure)))
 
 (defun uri-display (uri-structure &optional (out-stream t))
   (or (null uri-structure)
     (progn
       (print-uri-element (first uri-structure) out-stream )
-      (uri-display (rest uri-structure) out-stream)
-    )
-  )
-)
+      (uri-display (rest uri-structure) out-stream))))
 
 (defun print-uri-element (element out-stream)
-  (format out-stream "~11A ~A~%" (first element) (second element))
-)
+  (format out-stream "~11A ~A~%" (first element) (second element)))
 
 ;;; TODO: vabene string-downcase? uri-path di "qwe:/PaTh" dovrebbe restituire PaTh
 (defun uri-parse (stringa)
-  (the-uri-parse (string-to-list (string-downcase stringa)))
-  )
+  (uri-parse-start (string-to-list (string-downcase stringa))))
 
-(defun the-uri-parse (lista)
+(defun uri-parse-start (lista)
   (let ((scheme (scheme-parse lista)))
     (let ((scheme-string (list-to-string (first scheme))))
       ;(write (second scheme))
@@ -109,12 +87,10 @@
             ((string= scheme-string "fax")
              (make-uri "fax" (parse-telfax (second scheme))))
             ((string= scheme-string "zos")
-             (make-uri "zos" (parse-generic-and-zos (second scheme) "zos")))
-            (t (make-uri (list-to-string (first scheme)) (parse-generic-and-zos (second scheme) (list-to-string (first scheme)))))
-            )
-      )
-    )
-  )
+             (make-uri "zos" (parse-generic-or-zos (second scheme) "zos")))
+            (t (make-uri (list-to-string (first scheme))
+                (parse-generic-or-zos
+                  (second scheme) (list-to-string (first scheme)))))))))
 
 ;;; Helper functions, that can be composed to create expressions
 
@@ -198,7 +174,7 @@
         (list (leftover userinfo) (first userinfo) nil nil nil nil nil))))
 
 
-(defun parse-generic-and-zos (lista scheme)
+(defun parse-generic-or-zos (lista scheme)
   (let ((authorithy (authorithy-parse lista)))
     (let ((path-query-fragment
         (path-query-fragment-parse (fourth authorithy) scheme)))
@@ -263,7 +239,7 @@
           (or (not (alfap (first (first res))))
             (eql (first (last (first res))) #\. )))
         (halt-parser "id44 can't exceed 44 char length,
-         start with a letter or end with a '.'")
+         start with a letter, or end with a '.'")
         res)))
 
 (defun id8 (lista)

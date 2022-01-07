@@ -355,13 +355,13 @@ class Tests(unittest.TestCase):
             },
             #FRAGMENT
             #common use case
-            's://host/?query#12': {
+            's://host/?quEry#12': {
                 'scheme': 's',
                 'userinfo': None,
                 'host': 'host',
                 'port': 80,
                 'path':None,
-                'query': 'query',
+                'query': 'quEry',
                 'fragment': '12'
             },
             's://host/?query#fragment': {
