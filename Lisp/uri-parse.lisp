@@ -209,26 +209,14 @@
 
 
 (defun authorithy-parse (lista)
-  (if (and (eql (first lista) (second lista)) (eql (first lista) #\/))
-      (let ((userinfo (userinfo-parse (rest (rest lista)) #\@)))
-        (let ((host (host-parse (second userinfo))))
-          (if (eq (first (second host)) #\:)
-              (let ((port (port-parse (rest (second host)))))
-                (list (first userinfo) (first host) (first port) (second port)))
-              (list (first userinfo) (first host) nil (second host)))
-            ))
+  "Parse the expression '//' [ userinfo '@'] host [':' port ]"
+  (if (and (eql (first lista) #\/) (eql (second lista) #\/))
+      (let* (
+          (userinfo (userinfo-parse (rest (rest lista)) #\@))
+          (host (host-parse (leftover userinfo)))
+          (port (preceded-by-char (leftover host) #\: 'port-parse )))
+        (list (first userinfo) (first host) (first port) (leftover port)))
       (list nil nil nil lista)))
-
-; (defun authorithy-parse (lista)
-;   (if (and (eql (first lista) (second lista)) (eql (first lista) #\/))
-;       (let ((userinfo (userinfo-parse (rest (rest lista)) #\@)))
-;         (let ((host (host-parse (second userinfo))))
-;           (if (eq (first (second host)) #\:)
-;               (let ((port (port-parse (rest (second host)))))
-;                 (list (first userinfo) (first host) (first port) (second port)))
-;               (list (first userinfo) (first host) nil (second host)))
-;             ))
-;       (list nil nil nil lista)))
 
 (defun path-query-fragment-parse (lista scheme)
   (if (eq (first lista) #\/)
