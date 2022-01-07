@@ -11,6 +11,8 @@
 ;;; the input list
 
 
+;;; parse-integer error  last lowercase
+
 
 (defun string-to-list (string)
   (coerce string 'list))
@@ -29,7 +31,7 @@
   (if (null (first rest))
       (make-uri-aux scheme (second rest) (third rest) (fourth rest)
         (fifth rest) (sixth rest) (seventh rest))
-      (halt-parser)))
+      (halt-parser "42")))
 
 (defun make-uri-aux (scheme userinfo host port path query fragment)
     (list (list "Scheme:" scheme)
@@ -70,13 +72,12 @@
 (defun print-uri-element (element out-stream)
   (format out-stream "~11A ~A~%" (first element) (second element)))
 
-;;; TODO: vabene string-downcase? uri-path di "qwe:/PaTh" dovrebbe restituire PaTh
 (defun uri-parse (stringa)
-  (uri-parse-start (string-to-list (string-downcase stringa))))
+  (uri-parse-start (string-to-list stringa)))
 
 (defun uri-parse-start (lista)
   (let ((scheme (scheme-parse lista)))
-    (let ((scheme-string (list-to-string (first scheme))))
+    (let ((scheme-string (string-downcase (list-to-string (first scheme)))))
       ;(write (second scheme))
       (cond ((string= scheme-string "mailto") 
              (make-uri "mailto" (parse-mailto (second scheme))))
@@ -295,8 +296,7 @@
       (and (char<= char #\z) (char>= char #\a))))
 
 (defun digitp (char)
-  (and (char<= char #\9) (char>= char #\0))
-  )
+  (and (char<= char #\9) (char>= char #\0)))
 
 (defun anyp (char)
   t)
@@ -305,23 +305,16 @@
 (defun must-end-with (lista char)
   (if (eq char nil)
       lista
-    (if (eq (first (second lista)) char)
-        (list (first lista) (rest (second lista)))
-      ;(list nil (rest (second lista)))
-      (list nil (append (first lista) (second lista)))
-      )
-    )
-  )
+      (if (eq (first (second lista)) char)
+          (list (first lista) (rest (second lista)))
+          (list nil (append (first lista) (second lista))))))
 
 (defun must-not-end-with (lista char)
   (if (eq char nil)
       lista
-    (if (eq (first (second lista)) char)
-        (list nil (append (first lista) (second lista)))
-      (list (first lista) (rest (second lista)))
-      )
-    )
-)
+      (if (eq (first (second lista)) char)
+          (list nil (append (first lista) (second lista)))
+          (list (first lista) (rest (second lista))))))
 
 (defun lunghezza (lista)
   (if (null lista)
