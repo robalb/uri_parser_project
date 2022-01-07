@@ -264,8 +264,19 @@
 ;     )
 ;   )
 
+; TODO implementare join-all, che prende N liste in input e le joina
+(defun join-all (list-of-lists)
+t)
+
+;TODO implementare questo pseudocodice
 (defun zos-path-parse (lista)
-t
+  let res-44 (id44 lista)
+    if eq first leftover #\(
+      let res8 (id8 (leftover res44))
+        if not eq first leftover #\)
+          halt-parser "missing closing bracket after id8"
+          join-all(list res44 #\( res8 #\) )
+    (list res44)
   )
 
 (defun id44 (lista)
