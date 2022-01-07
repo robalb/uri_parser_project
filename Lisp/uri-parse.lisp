@@ -18,12 +18,10 @@
 (defun list-to-string (l)
   (if (null l)
     l
-    (coerce l 'string)
-  ))
+    (coerce l 'string)))
 
-(defun list-to-int (l) 
-  (parse-integer (list-to-string l))
-)
+(defun list-to-int (l)
+  (parse-integer (list-to-string l)))
 
 ;(set  'lista (string-to-list stringa))
 (defun urip (lista)
@@ -202,10 +200,11 @@
 
 (defun parse-generic-and-zos (lista scheme)
   (let ((authorithy (authorithy-parse lista)))
-    (let ((path-query-fragment (path-query-fragment-parse (fourth authorithy) scheme)))
-      (list (fourth path-query-fragment) (first authorithy) (second authorithy) (third authorithy)
-            (first path-query-fragment) (second path-query-fragment)
-            (third path-query-fragment)))))
+    (let ((path-query-fragment
+        (path-query-fragment-parse (fourth authorithy) scheme)))
+      (list (leftover path-query-fragment) (first authorithy)
+        (second authorithy) (third authorithy) (first path-query-fragment)
+        (second path-query-fragment) (third path-query-fragment)))))
 
 
 (defun authorithy-parse (lista)
@@ -247,43 +246,21 @@
 (defun port-parse (lista)
   (one-or-more-satisfying lista 'digitp))
 
-; (defun zos-path-parse (lista)
-;   (if (alfap (first lista))
-;       (let ((id44-parsed (must-not-end-with (one-or-more-satisfying lista 'id44p) #\.)))
-;         (if (<= (lunghezza (first id44-parsed)) 44)
-;             (if (eql (first (second id44-parsed)) #\()
-;                 (let ((id8-parsed (one-or-more-satisfying (second id44-parsed) 'id8p)))
-;                   (if (<= (lunghezza (first id8-parsed)) 8)
-;                       (list (append (append (first id44-parsed) (list #\())
-;                                     (append (first id8-parsed) (list #\))))
-;                             (second id8-parsed))
-;                     (list nil lista)))
-;               id44-parsed)
-;           (list nil lista)))
-;     (list nil lista)
-;     )
-;   )
-
-; TODO implementare join-all, che prende N liste in input e le joina
-(defun join-all (list-of-lists)
-t)
-
-;TODO implementare questo pseudocodice
 (defun zos-path-parse (lista)
-  let res-44 (id44 lista)
-    if eq first leftover #\(
-      let res8 (id8 (leftover res44))
-        if not eq first leftover #\)
-          halt-parser "missing closing bracket after id8"
-          join-all(list res44 #\( res8 #\) )
-    (list res44)
-  )
+  (let ((res-44 (id44 lista)))
+    (if (eql (first (leftover res-44)) #\( )
+        (let ((res-8 (id8 (rest (leftover res-44)))))
+          (if (eql (first (leftover res-8)) #\) )
+              (list (concatenate 'list 
+                  (first res-44) (list #\( ) (first res-8) (list #\) ))
+                (rest (leftover res-8)))
+              (halt-parser "missing closing bracket after id8")))
+        res-44)))
 
 (defun id44 (lista)
   (let ((res (one-or-more-satisfying lista 'id44p )))
     (if (or (> (length (first res)) 44)
-          (or
-            (not (alfap (first (first res))))
+          (or (not (alfap (first (first res))))
             (eql (first (last (first res))) #\. )))
         (halt-parser "id44 can't exceed 44 char length,
          start with a letter or end with a '.'")
