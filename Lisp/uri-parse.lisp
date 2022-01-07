@@ -11,10 +11,6 @@
 ;;; the input list
 
 
-(defun halt-parser (reason)
-"Halt the parser, by signaling a fatal error"
-  (error "Invalid URI: ~A" reason))
-
 
 (defun string-to-list (string)
   (coerce string 'list))
@@ -115,21 +111,20 @@
             ((string= scheme-string "fax")
              (make-uri "fax" (parse-telfax (second scheme))))
             ((string= scheme-string "zos")
-             (make-uri "zos" (parse-rest (second scheme) "zos")))
-            (t (make-uri (list-to-string (first scheme)) (parse-rest (second scheme) (list-to-string (first scheme)))))
+             (make-uri "zos" (parse-generic-and-zos (second scheme) "zos")))
+            (t (make-uri (list-to-string (first scheme)) (parse-generic-and-zos (second scheme) (list-to-string (first scheme)))))
             )
       )
     )
   )
 
-;;; naming ideas: must-start-with
-(defun expr-starting-with (char expr lista)
-  "Parses an expression of the form ['Char' <Expr>]"
-  (if (eql (first lista) char)
-      (if (null (rest lista))
-          (error "uri parse error callifstartingwith")
-          (funcall expr (rest lista)))
-      (list nil lista)))
+;;; Helper functions, that can be composed to create expressions
+
+(defun halt-parser (&optional reason)
+"Halt the parser, by signaling a fatal error"
+  (if (null reason)
+      (error "Invalid URI")
+      (error "Invalid URI: ~A" reason)))
 
 
 (defun leftover (lista)
@@ -138,12 +133,58 @@
     Yes, this is just returning the last element of a list"
   (first (last lista)))
 
+
+(defun zero-or-more-satisfying (lista pred)
+  "parses an expression of the form <Identifier>*
+   The identifier is composed by characters satisfying the given predicate"
+  (if (or (null lista) (not (funcall pred (first lista))))
+      (list nil lista)
+      (let ((res-ric (zero-or-more-satisfying (rest lista) pred)))
+        (list (cons (first lista) (first res-ric))
+          (second res-ric))))) 
+
+
+(defun one-or-more-satisfying (lista pred)
+  "parses an expression of the form <Identifier>+
+   The identifier is composed by characters satisfying the given predicate"
+  (let ((res (zero-or-more-satisfying lista pred)))
+    (if (null (first res))
+        (halt-parser)
+        res)))
+
+; naming ideas: must-be-preceded-by-char
+(defun preceded-by-char (lista char expr)
+  "Parses an expression of the form ['Char' <Expr>]"
+  (if (eql (first lista) char)
+      (if (null (rest lista))
+          (halt-parser (format nil "unexpected EOF after ~A" char))
+          (funcall expr (rest lista)))
+      (list nil lista)))
+
+
+(defun recursive-char-identifier (lista char identifier)
+  "parses an expression of the form ['Char' <identifier> ]* "
+  (if (eq (first lista) char)
+      (let* (
+          (res (one-or-more-satisfying (rest lista) identifier))
+          (res-rec (recursive-char-identifier (leftover res) char identifier)))
+        (list
+          (append
+            (append (list char) (first res))
+            (first res-rec))
+          (second res-rec)))
+      (list nil lista)))
+
+;;; end of helper functions
+;;; expressions for the URI parser
+
 (defun parse-mailto (lista)
   (if (null lista)
       (list nil nil nil nil nil nil nil)
       (let* ((userinfo (userinfo-parse lista))
-        (host (expr-starting-with #\@ 'host-parse (leftover userinfo))))
+          (host (preceded-by-char (leftover userinfo) #\@ 'host-parse)))
         (list (leftover host) (first userinfo) (first host) nil nil nil nil))))
+
 
 (defun parse-news (lista)
   (if (null lista)
@@ -151,26 +192,21 @@
       (let ((host (host-parse lista)))
         (list (second host) nil (first host) nil nil nil nil))))
 
+
 (defun parse-telfax (lista)
   (if (null lista)
       (list nil nil nil nil nil nil nil)
-    (let ((userinfo (userinfo-parse lista)))
-      (list (second userinfo) (first userinfo) nil nil nil nil nil))
-    ;(list "Userinfo:" (first (userinfo-parse lista)))
-    )
-  )
+      (let ((userinfo (userinfo-parse lista)))
+        (list (second userinfo) (first userinfo) nil nil nil nil nil))))
 
-;;; (defun parse-zos (lista)) ne abbiamo bisogno???
 
-(defun parse-rest (lista scheme)
+(defun parse-generic-and-zos (lista scheme)
   (let ((authorithy (authorithy-parse lista)))
     (let ((path-query-fragment (path-query-fragment-parse (fourth authorithy) scheme)))
       (list (fourth path-query-fragment) (first authorithy) (second authorithy) (third authorithy)
             (first path-query-fragment) (second path-query-fragment)
-            (third path-query-fragment))
-      )
-    )
-  )
+            (third path-query-fragment)))))
+
 
 (defun authorithy-parse (lista)
   (if (and (eql (first lista) (second lista)) (eql (first lista) #\/))
@@ -179,10 +215,20 @@
           (if (eq (first (second host)) #\:)
               (let ((port (port-parse (rest (second host)))))
                 (list (first userinfo) (first host) (first port) (second port)))
-            (list (first userinfo) (first host) nil (second host)))
+              (list (first userinfo) (first host) nil (second host)))
             ))
-    (list nil nil nil lista))
-  )
+      (list nil nil nil lista)))
+
+; (defun authorithy-parse (lista)
+;   (if (and (eql (first lista) (second lista)) (eql (first lista) #\/))
+;       (let ((userinfo (userinfo-parse (rest (rest lista)) #\@)))
+;         (let ((host (host-parse (second userinfo))))
+;           (if (eq (first (second host)) #\:)
+;               (let ((port (port-parse (rest (second host)))))
+;                 (list (first userinfo) (first host) (first port) (second port)))
+;               (list (first userinfo) (first host) nil (second host)))
+;             ))
+;       (list nil nil nil lista)))
 
 (defun path-query-fragment-parse (lista scheme)
   (if (eq (first lista) #\/)
@@ -211,23 +257,27 @@
 (defun userinfo-parse (lista &optional ends-with)
   (must-end-with (one-or-more-satisfying lista 'identificatorep) ends-with))
 
+; (defun host-parse (lista)
+;       (if (and (eq (length lista) 1)
+;             (identificatorep (first lista)))
+;           (list (first lista) (rest lista))
+;           (let ((identificatore (one-or-more-satisfying lista 'hostp)))
+;             (if (null (first identificatore))
+;                 (list nil lista)
+;                 (if (and (eql (first (second identificatore)) #\.)
+;                       (hostp (second (second identificatore))))
+;                     (let ((risultato-ric-host-parse (host-parse (rest (second identificatore)))))
+;                       ;(write "risultato-ric:")
+;                       ;(write risultato-ric-host-parse)
+;                       (list (append (append (first identificatore) (list #\.)) (first risultato-ric-host-parse))
+;                         (second risultato-ric-host-parse))) ; *
+;                     (list (first identificatore) (second identificatore)))))))
+
 (defun host-parse (lista)
-  (if (null lista)
-      (error "invalid uri in hostparse")
-      (if (and (eq (length lista) 1)
-            (identificatorep (first lista)))
-          (list (first lista) (rest lista))
-          (let ((identificatore (one-or-more-satisfying lista 'hostp)))
-            (if (null (first identificatore))
-                (list nil lista)
-                (if (and (eql (first (second identificatore)) #\.)
-                      (hostp (second (second identificatore))))
-                    (let ((risultato-ric-host-parse (host-parse (rest (second identificatore)))))
-                      ;(write "risultato-ric:")
-                      ;(write risultato-ric-host-parse)
-                      (list (append (append (first identificatore) (list #\.)) (first risultato-ric-host-parse))
-                        (second risultato-ric-host-parse))) ; *
-                    (list (first identificatore) (second identificatore))))))))
+  (let* ((res (one-or-more-satisfying lista 'hostp))
+      (res-rec (recursive-char-identifier (leftover res) #\. 'hostp)))
+    (list (append (first res) (first res-rec)) (leftover res-rec))))
+
 
 (defun port-parse (lista)
   (one-or-more-satisfying lista 'digitp))
@@ -257,35 +307,12 @@
   (let ((identificatore (zero-or-more-satisfying lista 'identificatorep)))
     (if (null (first identificatore))
         (list nil lista)
-        (let ((res (pred-starting-with
+        (let ((res (recursive-char-identifier
                      (second identificatore) #\/ 'identificatorep)))
           (list (append
                   (first identificatore)
                   (first res))
                 (second res))))))
-
-; (defun path-parse-rec (lista)
-;   (if (eq (first lista) #\/)
-;         (let ((res (one-or-more-satisfying (rest lista) 'identificatorep)))
-;           (let ((res-rec (path-parse-rec (second res))))
-;             (list
-;               (append
-;                     (append (list #\/) (first res))
-;                     (first res-rec))
-;               (second res-rec))))
-;         (list nil lista)))
-
-(defun pred-starting-with (lista char predicato)
-  "parses an expression of the form ['Char' <pred> ]* "
-  (if (eq (first lista) char)
-        (let ((res (one-or-more-satisfying (rest lista) predicato)))
-          (let ((res-rec (path-parse-rec (second res))))
-            (list
-              (append
-                    (append (list char) (first res))
-                    (first res-rec))
-              (second res-rec))))
-        (list nil lista)))
 
 
 (defun query-parse (lista)
@@ -330,18 +357,6 @@
 (defun any (char)
   t)
 
-(defun one-or-more-satisfying (lista pred)
-  (let ((res (zero-or-more-satisfying lista pred)))
-  (if (null (first res))
-      (error "invalid uri")
-      res)
-  ))
-(defun zero-or-more-satisfying (lista pred)
-  (if (or (null lista) (not (funcall pred (first lista))))
-      (list nil lista)
-      (let ((risultato-ric (zero-or-more-satisfying (rest lista) pred)))
-        (list (cons (first lista) (first risultato-ric)) ;al posto della seconda "list" c'era un cons, ma dopo non potevo fare append #\. in host, alla riga con il commento "*"
-            (second risultato-ric))))) 
 
 (defun must-end-with (lista char)
   (if (eq char nil)
