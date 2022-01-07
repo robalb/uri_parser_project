@@ -25,8 +25,6 @@
 (defun list-to-int (l)
   (parse-integer (list-to-string l)))
 
-;;; TODO: every expression hasthe leftover as the last element of its returned list,
-;;; but here the leftover is expected to be the first element. it's confusing
 (defun make-uri (scheme rest)
   (if (null (first rest))
       (make-uri-aux scheme (second rest) (third rest) (fourth rest)
