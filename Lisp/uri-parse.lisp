@@ -31,7 +31,7 @@
   (if (null (first rest))
       (make-uri-aux scheme (second rest) (third rest) (fourth rest)
         (fifth rest) (sixth rest) (seventh rest))
-      (halt-parser "42")))
+      (halt-parser)))
 
 (defun make-uri-aux (scheme userinfo host port path query fragment)
     (list (list "Scheme:" scheme)
@@ -308,13 +308,6 @@
       (if (eq (first (second lista)) char)
           (list (first lista) (rest (second lista)))
           (list nil (append (first lista) (second lista))))))
-
-(defun must-not-end-with (lista char)
-  (if (eq char nil)
-      lista
-      (if (eq (first (second lista)) char)
-          (list nil (append (first lista) (second lista)))
-          (list (first lista) (rest (second lista))))))
 
 (defun lunghezza (lista)
   (if (null lista)
