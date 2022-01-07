@@ -154,7 +154,9 @@
 
 ; naming ideas: must-be-preceded-by-char
 (defun preceded-by-char (lista char expr)
-  "Parses an expression of the form ['Char' <Expr>]"
+  "Parses an expression of the form ['Char' <Expr>]
+   This functions wraps an expression function, and
+   makes it work only if it's preceded by the given char"
   (if (eql (first lista) char)
       (if (null (rest lista))
           (halt-parser (format nil "unexpected EOF after ~A" char))
@@ -169,9 +171,7 @@
           (res (one-or-more-satisfying (rest lista) identifier))
           (res-rec (recursive-char-identifier (leftover res) char identifier)))
         (list
-          (append
-            (append (list char) (first res))
-            (first res-rec))
+          (append (append (list char) (first res)) (first res-rec))
           (second res-rec)))
       (list nil lista)))
 
@@ -190,14 +190,14 @@
   (if (null lista)
       (list nil nil nil nil nil nil nil)
       (let ((host (host-parse lista)))
-        (list (second host) nil (first host) nil nil nil nil))))
+        (list (leftover host) nil (first host) nil nil nil nil))))
 
 
 (defun parse-telfax (lista)
   (if (null lista)
       (list nil nil nil nil nil nil nil)
       (let ((userinfo (userinfo-parse lista)))
-        (list (second userinfo) (first userinfo) nil nil nil nil nil))))
+        (list (leftover userinfo) (first userinfo) nil nil nil nil nil))))
 
 
 (defun parse-generic-and-zos (lista scheme)
@@ -257,27 +257,10 @@
 (defun userinfo-parse (lista &optional ends-with)
   (must-end-with (one-or-more-satisfying lista 'identificatorep) ends-with))
 
-; (defun host-parse (lista)
-;       (if (and (eq (length lista) 1)
-;             (identificatorep (first lista)))
-;           (list (first lista) (rest lista))
-;           (let ((identificatore (one-or-more-satisfying lista 'hostp)))
-;             (if (null (first identificatore))
-;                 (list nil lista)
-;                 (if (and (eql (first (second identificatore)) #\.)
-;                       (hostp (second (second identificatore))))
-;                     (let ((risultato-ric-host-parse (host-parse (rest (second identificatore)))))
-;                       ;(write "risultato-ric:")
-;                       ;(write risultato-ric-host-parse)
-;                       (list (append (append (first identificatore) (list #\.)) (first risultato-ric-host-parse))
-;                         (second risultato-ric-host-parse))) ; *
-;                     (list (first identificatore) (second identificatore)))))))
-
 (defun host-parse (lista)
   (let* ((res (one-or-more-satisfying lista 'hostp))
       (res-rec (recursive-char-identifier (leftover res) #\. 'hostp)))
     (list (append (first res) (first res-rec)) (leftover res-rec))))
-
 
 (defun port-parse (lista)
   (one-or-more-satisfying lista 'digitp))
@@ -298,10 +281,6 @@
     (list nil lista)
     )
   )
-
-(defun hack-equal (lista char predicate)
-  (and (eql (first lista) char)
-        (funcall (predicate  (second lista) ))))
 
 (defun path-parse (lista)
   (let ((identificatore (zero-or-more-satisfying lista 'identificatorep)))
