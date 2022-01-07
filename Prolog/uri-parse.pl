@@ -388,20 +388,20 @@ indirizzo_ip(Ip) -->
     terzina(NNN3), {length(NNN3, 3)}, ['.'],
     terzina(NNN4), {length(NNN4, 3)},
     {append(NNN1 , ['.'], N1),
-    append(NNN2, ['.'], N2),
-    append(NNN3, ['.'], N3),
-    append(N1,  N2, N12),
-    append(N3, NNN4, N34),
-    append(N12, N34, Ip)}.
+     append(NNN2, ['.'], N2),
+     append(NNN3, ['.'], N3),
+     append(N1,  N2, N12),
+     append(N3, NNN4, N34),
+     append(N12, N34, Ip)}.
 
 terzina(NNN) -->
     [N1], [N2], [N3],
     {single_digit(N1),
-    single_digit(N2),
-    single_digit(N3),
-    controllo_terzina(N1, N2, N3),
-    append([N1], [N2], N12),
-    append(N12, [N3], NNN)}.
+     single_digit(N2),
+     single_digit(N3),
+     controllo_terzina(N1, N2, N3),
+     append([N1], [N2], N12),
+     append(N12, [N3], NNN)}.
 
 controllo_terzina(N1, N2, N3) :-
     N is N1 * N2 * N3,
