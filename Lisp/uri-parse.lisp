@@ -15,7 +15,7 @@
 
 
 (defun string-to-list (string)
-      (coerce string 'list))
+  (coerce string 'list))
 
 (defun list-to-string (l)
   (if (null l)
