@@ -1,20 +1,29 @@
+""" Formatting and indentation tests"""
 import unittest
 import os
+import subprocess
+
 
 __unittest = True
+
+dirname = os.path.dirname(__file__)
+lisp_path = os.path.join(dirname, '../Lisp/uri-parse.lisp')
+prolog_path = os.path.join(dirname, '../Prolog/uri-parse.pl')
 
 class Tests(unittest.TestCase):
     """Formatting and indentation tests
     """
     def test_80_cols_LISP(self):
-      dirname = os.path.dirname(__file__)
-      filename = os.path.join(dirname, '../Lisp/uri-parse.lisp')
-      self.columns_check(filename)
+      self.columns_check(lisp_path)
 
     def test_80_cols_PROLOG(self):
-      dirname = os.path.dirname(__file__)
-      filename = os.path.join(dirname, '../Prolog/uri-parse.pl')
-      self.columns_check(filename)
+      self.columns_check(prolog_path)
+
+    def test_emacs_indent_LISP(self):
+      self.emacs_check(lisp_path)
+
+    def test_emacs_indent_PROLOG(self):
+      self.emacs_check(prolog_path)
 
     def columns_check(self, path):
       """Check that a file respect the 80 columns limit"""
@@ -31,4 +40,12 @@ class Tests(unittest.TestCase):
 
     def emacs_check(self, path):
       """Check that a file respects the emacs indentation"""
-      pass
+      cmd = [
+        '/project/tests/bash/diff-emacs-indent.sh',
+        path,
+      ]
+      out = subprocess.run(cmd, capture_output=True)
+      out_string = out.stdout.decode()
+      if len(out_string) > 0:
+        self.fail(f"after formatting the file with emacs, some lines changed:\n{out_string}")
+

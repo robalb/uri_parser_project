@@ -1,4 +1,5 @@
 """ Tests specific to the prolog uri-parser implementation"""
+
 import unittest
 from .interfaces import PrologParser, MalformedException
 import time,datetime
