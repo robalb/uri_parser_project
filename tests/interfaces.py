@@ -48,7 +48,6 @@ class PrologParser(ParserInterface):
         return {k: l(v) for k, v in dic.items()}
 
     def query(self, query):
-        #Danger: This allows arbitrary prolog code execution
         return list(self.prolog.query(query))
 
     def parse(self, uri):
@@ -81,10 +80,16 @@ class LispParser(ParserInterface):
     pass
 
   def parse(self, uri):
-    #Danger: this allows arbitrary Lisp code execution
     dirname = os.path.dirname(__file__)
     filename = os.path.join(dirname, '../Lisp/uri-parse.lisp')
-    lisp_query = f'(uri-display (uri-parse "{uri}"))'
+    lisp_query = f"""(let ((uri (uri-parse "{uri}")))
+    (format t ">  ~A~%" (uri-scheme uri))
+    (format t ">  ~A~%" (uri-userinfo uri))
+    (format t ">  ~A~%" (uri-host uri))
+    (format t ">  ~A~%" (uri-port uri))
+    (format t ">  ~A~%" (uri-path uri))
+    (format t ">  ~A~%" (uri-query uri))
+    (format t ">  ~A~%" (uri-fragment uri)))"""
     cmd = [
     'sbcl',
     '--load',
