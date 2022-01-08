@@ -28,3 +28,7 @@ class Tests(unittest.TestCase):
             if len(line) > 80 + 1:
               self.fail(f"line {line_num} is too long: {line}")
           line_num += 1
+
+    def emacs_check(self, path):
+      """Check that a file respects the emacs indentation"""
+      pass

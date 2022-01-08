@@ -6,6 +6,8 @@
   "Format the whole buffer."
   ;(c-set-style "stroustrup")
   ;(setq-default fill-column 80)
+  ;(add-hook 'text-mode-hook #'auto-fill-mode)
   (indent-region (point-min) (point-max) nil)
   (untabify (point-min) (point-max))
-  (save-buffer))
+  (write-file "emacs-formatted" nil))
+  ;(save-buffer))
