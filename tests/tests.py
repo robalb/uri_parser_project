@@ -40,7 +40,7 @@ class Tests(unittest.TestCase):
           's?:',
           's#:',
           's::',
-          's c:',
+          #'s c:',
           ':',   #scheme can't be empty
           #HOST
           's://', #empty host
@@ -49,7 +49,7 @@ class Tests(unittest.TestCase):
           's://ho..st',
           's://ho?st', #invalid characters ( ?,# must be preceeded by /)
           's://ho#st',
-          's://ho st',
+          #'s://ho st',
           #USERINFO
           's://@host', #empty userinfo
           's://userinfo@', #empty host
@@ -57,7 +57,7 @@ class Tests(unittest.TestCase):
           's://u/i@host',
           's://u?i@host',
           's://u#i@host',
-          's://u i@host',
+          #'s://u i@host',
           's://u:i@host', #also an invalid character, although allowed by rfc
           #PORT
           's://host:a', #port must be a number
@@ -78,15 +78,16 @@ class Tests(unittest.TestCase):
           's:host/pa:th',
           's:host/pa?th',
           's:host/pa#th',
-          's:host/pa th',
+          #'s:host/pa th',
           #QUERY
           's:?query', #a slash must preceed the query
-          's:/?quer y', #invalid characters
+          #'s:/?quer y', #invalid characters
           's://host/path?', #query cant be empty
           #FRAGMENT
           's:#fragment', # a slash must preceed the fragment
           's://host/path#', #fragment cant be empty
-          's://host/path#fragm ent', #invalid characters
+          's:/#',
+          #'s://host/path#fragm ent', #invalid characters
 
           #MAILTO
           'mailto:userinfo@host?query',
@@ -131,6 +132,8 @@ class Tests(unittest.TestCase):
           'zos://host:43/id44()?query',
           'zos://host:43/id44(?query',
           'zos://host:43/id44)?query',
+          'zos:/?path', #zos path is required
+          'zos://host/?query'
       ]
       for uri in tests:
           with self.subTest(uri=uri):
@@ -423,7 +426,7 @@ class Tests(unittest.TestCase):
                 'fragment': None
             },
             'mAilTO:': {
-                'scheme': 'mailto',
+                'scheme': 'mAilTO',
                 'userinfo': None,
                 'host': None,
                 'port': default_80,
@@ -461,7 +464,7 @@ class Tests(unittest.TestCase):
                 'fragment': None
             },
             'NEwS:': {
-                'scheme': 'news',
+                'scheme': 'NEwS',
                 'userinfo': None,
                 'host': None,
                 'port': default_80,
@@ -499,7 +502,7 @@ class Tests(unittest.TestCase):
                 'fragment': None
             },
             'TeL:': {
-                'scheme': 'tel',
+                'scheme': 'TeL',
                 'userinfo': None,
                 'host': None,
                 'port': default_80,
@@ -517,7 +520,7 @@ class Tests(unittest.TestCase):
                 'fragment': None
             },
             'FAX:+39-327-9856-123': {
-                'scheme': 'fax',
+                'scheme': 'FAX',
                 'userinfo': '+39-327-9856-123',
                 'host': None,
                 'port': default_80,
@@ -546,7 +549,7 @@ class Tests(unittest.TestCase):
                 'fragment': None
             },
             'ZOS:': {
-                'scheme': 'zos',
+                'scheme': 'ZOS',
                 'userinfo': None,
                 'host': None,
                 'port': 80,
