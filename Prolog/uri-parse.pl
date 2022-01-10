@@ -204,7 +204,7 @@ host(Host) -->
     host_opt(T),
     { append(H, T, Host) }.
 
- host(Host) -->
+host(Host) -->
     indirizzo_ip(Host).
 
 host_opt(['.' | Host_opt]) -->
