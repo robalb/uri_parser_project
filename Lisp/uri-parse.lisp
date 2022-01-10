@@ -328,7 +328,7 @@
                      (second (first res))
                      (third (first res))))
         (if (eql (first (remainder res)) #\.)
-            (let ((res-rec (ip-parse (rest (remainder res)))))
+            (let ((res-rec (ip-parse-aux (rest (remainder res)))))
               (list (append (append (first res) (list #\.))
                             (first res-rec)) (remainder res-rec)))
           res)
