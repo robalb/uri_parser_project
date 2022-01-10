@@ -1,5 +1,12 @@
-"""language-independent Unit tests
+"""interfaces for the language-independent Unit tests
+
+This module defines a generic URI-parser interface,
+that can be used to parse an URI using either the prolog parser
+or the lisp parser.
+
+The prolog program is queried using pyswip
 https://github.com/yuce/pyswip
+The lisp program is executed as a subprocess
 https://docs.python.org/3/library/subprocess.html
 """
 from pyswip import Prolog
@@ -7,9 +14,10 @@ import subprocess
 import os
 import re
 
-class MalformedException(Exception):
-    pass
 
+class MalformedException(Exception):
+    """Malformed URI, can't be parsed"""
+    pass
 
 
 class ParserInterface:
@@ -24,7 +32,6 @@ class ParserInterface:
         pass
 
 
-
 class PrologParser(ParserInterface):
     def __init__(self):
         dirname = os.path.dirname(__file__)
@@ -34,16 +41,13 @@ class PrologParser(ParserInterface):
 
     def __normalize_none(self, dic):
         """Returns a new dict, with all the empty lists replaced with None"""
-
         def l(v):
             if isinstance(v, list):
                 return None
             return v
-
         return {k: l(v) for k, v in dic.items()}
 
     def query(self, query):
-        #Danger: This allows arbitrary prolog code execution
         return list(self.prolog.query(query))
 
     def parse(self, uri):
@@ -71,16 +75,21 @@ class PrologParser(ParserInterface):
       }
 
 
-
 class LispParser(ParserInterface):
   def __init__(self):
     pass
 
   def parse(self, uri):
-    #Danger: this allows arbitrary Lisp code execution
     dirname = os.path.dirname(__file__)
     filename = os.path.join(dirname, '../Lisp/uri-parse.lisp')
-    lisp_query = f'(uri-display (uri-parse "{uri}"))'
+    lisp_query = f"""(let ((uri (uri-parse "{uri}")))
+    (format t ">  ~A~%" (uri-scheme uri))
+    (format t ">  ~A~%" (uri-userinfo uri))
+    (format t ">  ~A~%" (uri-host uri))
+    (format t ">  ~A~%" (uri-port uri))
+    (format t ">  ~A~%" (uri-path uri))
+    (format t ">  ~A~%" (uri-query uri))
+    (format t ">  ~A~%" (uri-fragment uri)))"""
     cmd = [
     'sbcl',
     '--load',
@@ -109,7 +118,6 @@ class LispParser(ParserInterface):
         components.append(value)
       else:
         raise MalformedException(uri)
-
     return {
         'scheme': components[0],
         'userinfo': components[1],
@@ -120,18 +128,7 @@ class LispParser(ParserInterface):
         'fragment': components[6]
     }
 
-
-# prolog = PrologParser()
-# python = UrllibParser()
-# def parse(uri):
-#     try:
-#         print("PROLOG", prolog.parse(uri))
-#     except MalformedException as e:
-#         print("PROLOG: malformed")
-#     print("PYTHON", python.parse(uri))
-
-# parse("mailto://foo/bar?q")
-
+##usage example
 #lisp = LispParser()
 #print(lisp.parse("http://asd.com"))
 

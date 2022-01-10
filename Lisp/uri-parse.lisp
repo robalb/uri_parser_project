@@ -11,9 +11,6 @@
 ;;; the input list
 
 
-;;; parse-integer error  last lowercase
-
-
 (defun string-to-list (string)
   (coerce string 'list))
 
@@ -29,10 +26,10 @@
   (if (null (first rest))
       (make-uri-aux scheme (second rest) (third rest) (fourth rest)
                     (fifth rest) (sixth rest) (seventh rest))
-    (halt-parser "42")))
+    (halt-parser)))
 
 (defun make-uri-aux (scheme userinfo host port path query fragment)
-  (list (list "Scheme:" scheme)
+  (list (list "Scheme:" (list-to-string scheme))
         (list "Userinfo:" (list-to-string userinfo))
         (list "Host:" (list-to-string host))
         (list "Port:" (if (null port) 80 (list-to-int port)))
@@ -64,7 +61,7 @@
 (defun uri-display (uri-structure &optional (out-stream t))
   (or (null uri-structure)
       (progn
-        (print-uri-element (first uri-structure) out-stream)
+        (print-uri-element (first uri-structure) out-stream )
         (uri-display (rest uri-structure) out-stream))))
 
 (defun print-uri-element (element out-stream)
@@ -76,17 +73,17 @@
 (defun uri-parse-start (lista)
   (let ((scheme (scheme-parse lista)))
     (let ((scheme-string (string-downcase (list-to-string (first scheme)))))
-      ;(write (second scheme))
       (cond ((string= scheme-string "mailto") 
-             (make-uri "mailto" (parse-mailto (second scheme))))
+             (make-uri (first scheme) (parse-mailto (second scheme))))
             ((string= scheme-string "news") 
-             (make-uri "news" (parse-news (second scheme))))
+             (make-uri (first scheme) (parse-news (second scheme))))
             ((string= scheme-string "tel")
-             (make-uri "tel" (parse-telfax (second scheme))))
+             (make-uri (first scheme) (parse-telfax (second scheme))))
             ((string= scheme-string "fax")
-             (make-uri "fax" (parse-telfax (second scheme))))
+             (make-uri (first scheme) (parse-telfax (second scheme))))
             ((string= scheme-string "zos")
-             (make-uri "zos" (parse-generic-or-zos (second scheme) "zos")))
+             (make-uri (first scheme)
+                       (parse-generic-or-zos (second scheme) "zos")))
             (t (make-uri (list-to-string (first scheme))
                          (parse-generic-or-zos
                           (second scheme) (list-to-string (first scheme)))))))))
@@ -125,7 +122,6 @@
         (halt-parser)
       res)))
 
-
 (defun preceded-by-char (lista char expr)
   "Parses an expression of the form ['Char' <Expr>]
    This functions wraps an expression function, and
@@ -142,8 +138,8 @@
   (if (eq (first lista) char)
       (let* (
              (res (one-or-more-satisfying (rest lista) identifier))
-             (res-rec
-              (recursive-char-identifier (leftover res) char identifier)))
+             (res-rec (recursive-char-identifier
+                       (leftover res) char identifier)))
         (list
          (append (append (list char) (first res)) (first res-rec))
          (second res-rec)))
@@ -198,7 +194,7 @@
   (if (eq (first lista) #\/)
       (let* (
              (path (path-parse-choice (rest lista) scheme))
-             (query (preceded-by-char (leftover path) #\? 'query-parse))
+             (query (preceded-by-char (leftover path) #\? 'query-parse ))
              (fragment (preceded-by-char (leftover query) #\# 'fragment-parse)))
         (list (first path) (first query) (first fragment) (leftover fragment)))
     (list nil nil nil lista)))
@@ -228,8 +224,8 @@
         (let ((res-8 (id8 (rest (leftover res-44)))))
           (if (eql (first (leftover res-8)) #\))
               (list (concatenate 'list 
-                                 (first res-44)
-                                 (list #\() (first res-8) (list #\)))
+                                 (first res-44) (list #\() (first res-8)
+                                 (list #\)))
                     (rest (leftover res-8)))
             (halt-parser "missing closing bracket after id8")))
       res-44)))
@@ -308,13 +304,6 @@
     (if (eq (first (second lista)) char)
         (list (first lista) (rest (second lista)))
       (list nil (append (first lista) (second lista))))))
-
-(defun must-not-end-with (lista char)
-  (if (eq char nil)
-      lista
-    (if (eq (first (second lista)) char)
-        (list nil (append (first lista) (second lista)))
-      (list (first lista) (rest (second lista))))))
 
 (defun lunghezza (lista)
   (if (null lista)

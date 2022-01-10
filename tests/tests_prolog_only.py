@@ -1,3 +1,5 @@
+""" Tests specific to the prolog uri-parser implementation"""
+
 import unittest
 from .interfaces import PrologParser, MalformedException
 import time,datetime
@@ -10,7 +12,6 @@ class Tests(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.parser = PrologParser()
-
 
     def test_expect_true(self):
         tests = {
@@ -32,19 +33,3 @@ class Tests(unittest.TestCase):
                     self.fail(f"did NOT parse: {string}")
                 res = bool(query)
                 self.assertTrue(res)
-
-    def test_time_metrics(self):
-
-        print("== TIMING TESTS ==")
-        tests = [
-            'uri_parse("http://asd", X)',
-            'uri_parse("http://user@disco.unimib.it/moodle/login?auth=asd&q=1#12", X)',
-        ]
-        for test in tests:
-            start_time = time.time()
-            query = self.parser.query(test)
-            end_time = time.time()
-            elapsed = end_time - start_time
-            print("-----------")
-            print( test)
-            print( str(datetime.timedelta(seconds=elapsed)))

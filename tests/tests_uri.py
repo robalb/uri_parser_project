@@ -1,134 +1,148 @@
+"""Language independent Unit tests for the simplified uri-parser
+
+"""
 import unittest
 from .interfaces import PrologParser, LispParser, MalformedException
 
 __unittest = True
 
 class Tests(unittest.TestCase):
-    """Basic tests for the subset of rfc3986 described in the assignment
-    https://elearning.unimib.it/pluginfile.php/1141330/mod_resource/content/13/20220115%20LP%20E1P%20URI%20v2.pdf
-    https://datatracker.ietf.org/doc/html/rfc3986
-    """
     @classmethod
     def setUpClass(self):
-        self.parser = LispParser()
-        #self.parser = PrologParser()
+        self.lisp = LispParser()
+        self.prolog = PrologParser()
 
-    def test_fail_parse(self):
+    def test_LISP_failing_uris(self):
+      self.failing_uris(self.lisp)
 
-        tests = [
-            #https://elearning.unimib.it/mod/forum/discuss.php?d=189837
-            'mailto://foo/bar?q',
-            #https://elearning.unimib.it/mod/forum/discuss.php?d=189837#p306737
-            'zos:/',
-            #https://elearning.unimib.it/mod/forum/discuss.php?d=189837#p307681
-            'zos://you@themainframe.bigiron.fe/hlq.source.fortran(svd)/some/more/path',
-            #Telegram:
-            #SCHEME
-            's@:', #invalid characters
-            's/:',
-            's?:',
-            's#:',
-            's::',
-            's c:',
-            ':',   #scheme can't be empty
-            #HOST
-            's://', #empty host
-            's://host.', #invalid dot position
-            's://.host',
-            's://ho..st',
-            's://ho?st', #invalid characters ( ?,# must be preceeded by /)
-            's://ho#st',
-            's://ho st',
-            #USERINFO
-            's://@host', #empty userinfo
-            's://userinfo@', #empty host
-            's://u@i@host', #invalid characters
-            's://u/i@host',
-            's://u?i@host',
-            's://u#i@host',
-            's://u i@host',
-            's://u:i@host', #also an invalid character, although allowed by rfc
-            #PORT
-            's://host:a', #port must be a number
-            's://:42', #host missing
-            's://host:', #value missing
-            #PATH
-            's://host//', #path can't start with slash
-            's://host//path',
-            's://host/path//',
-            's://host/path/', #path can't end with slash
-            's://host/path/?asd',
-            's://host/path/#asd',
-            's://host/path/path/',
-            's:path/path', #path must start with slash, even without authority
-            's:/path/',
-            's:/path//path',
-            's:host/pa@th', #invalid characters
-            's:host/pa:th',
-            's:host/pa?th',
-            's:host/pa#th',
-            's:host/pa th',
-            #QUERY
-            's:?query', #a slash must preceed the query
-            's:/?quer y', #invalid characters
-            's://host/path?', #query cant be empty
-            #FRAGMENT
-            's:#fragment', # a slash must preceed the fragment
-            's://host/path#', #fragment cant be empty
-            's://host/path#fragm ent', #invalid characters
+    def test_PROLOG_failing_uris(self):
+      self.failing_uris(self.prolog)
 
-            #MAILTO
-            'mailto:userinfo@host?query',
-            'mailto:/path',
-            'mailto:/?query',
-            'mailto:/#fragm',
+    def test_LISP_valid_uris(self):
+      self.valid_uris(self.lisp)
 
-            #NEWS
-            'news:host.com?query',
-            'news://host.com',
-            'news:user@host.com',
-            'news:@host.com',
-            'news:/path',
-            'news:/?query',
-            'news:/#query',
+    def test_PROLOG_valid_uris(self):
+      self.valid_uris(self.prolog)
 
-            #TEL/FAX
-            'fax://host.com',
-            'tel://host.com',
-            'tel:/path',
-            'tel:/?query',
-            'tel:/#fragm',
-            'tel:us/er', #invalid characters
-            'tel:us?er',
-            'tel:us#er',
-            'tel:us@er',
-            'tel:us:er',
+    def failing_uris(self, parser):
+      """ Invalid uris, that the parser should fail to parse"""
+      tests = [
+          #https://elearning.unimib.it/mod/forum/discuss.php?d=189837
+          'mailto://foo/bar?q',
+          #https://elearning.unimib.it/mod/forum/discuss.php?d=189837#p306737
+          'zos:/',
+          #https://elearning.unimib.it/mod/forum/discuss.php?d=189837#p307681
+          'zos://you@themainframe.bigiron.fe/hlq.source.fortran(svd)/some/more/path',
+          #Telegram:
+          #SCHEME
+          's@:', #invalid characters
+          's/:',
+          's?:',
+          's#:',
+          's::',
+          #'s c:',
+          ':',   #scheme can't be empty
+          #HOST
+          's://', #empty host
+          's://host.', #invalid dot position
+          's://.host',
+          's://ho..st',
+          's://ho?st', #invalid characters ( ?,# must be preceeded by /)
+          's://ho#st',
+          #'s://ho st',
+          #USERINFO
+          's://@host', #empty userinfo
+          's://userinfo@', #empty host
+          's://u@i@host', #invalid characters
+          's://u/i@host',
+          's://u?i@host',
+          's://u#i@host',
+          #'s://u i@host',
+          's://u:i@host', #also an invalid character, although allowed by rfc
+          #PORT
+          's://host:a', #port must be a number
+          's://:42', #host missing
+          's://host:', #value missing
+          #PATH
+          's://host//', #path can't start with slash
+          's://host//path',
+          's://host/path//',
+          's://host/path/', #path can't end with slash
+          's://host/path/?asd',
+          's://host/path/#asd',
+          's://host/path/path/',
+          's:path/path', #path must start with slash, even without authority
+          's:/path/',
+          's:/path//path',
+          's:host/pa@th', #invalid characters
+          's:host/pa:th',
+          's:host/pa?th',
+          's:host/pa#th',
+          #'s:host/pa th',
+          #QUERY
+          's:?query', #a slash must preceed the query
+          #'s:/?quer y', #invalid characters
+          's://host/path?', #query cant be empty
+          #FRAGMENT
+          's:#fragment', # a slash must preceed the fragment
+          's://host/path#', #fragment cant be empty
+          's:/#',
+          #'s://host/path#fragm ent', #invalid characters
 
-            #ZOS
-            'zos:/',
-            'zos:/.abc', #id44 must start with a letter
-            'zos:/1abc',
-            'zos:/abc.', #id44 can't end wit a dot
-            ('zos:/' + 'a' * 46), #id4 must be max 44 chars long
-            #'zos:/ab..c', #technically not allowed according to the IBM specs
-            'zos:/id44(8)', #id8 must start with a letter
-            'zos:/id44(asd.asd)' #id8 can only contain letters and numbers
-            'zos:/id44(aaaabbbbc)' #id8 must be max 8 characters long
-            'zos:/id44(',
-            'zos:/id44)',
-            'zos:/id44()',
-            'zos://host:43/id44()?query',
-            'zos://host:43/id44(?query',
-            'zos://host:43/id44)?query',
+          #MAILTO
+          'mailto:userinfo@host?query',
+          'mailto:/path',
+          'mailto:/?query',
+          'mailto:/#fragm',
 
-        ]
-        for uri in tests:
-            with self.subTest(uri=uri):
-                with self.assertRaises(MalformedException):
-                    self.parser.parse(uri)
+          #NEWS
+          'news:host.com?query',
+          'news://host.com',
+          'news:user@host.com',
+          'news:@host.com',
+          'news:/path',
+          'news:/?query',
+          'news:/#query',
 
-    def test_parsed_values(self):
-        debatable_80 = 80
+          #TEL/FAX
+          'fax://host.com',
+          'tel://host.com',
+          'tel:/path',
+          'tel:/?query',
+          'tel:/#fragm',
+          'tel:us/er', #invalid characters
+          'tel:us?er',
+          'tel:us#er',
+          'tel:us@er',
+          'tel:us:er',
+
+          #ZOS
+          'zos:/',
+          'zos:/.abc', #id44 must start with a letter
+          'zos:/1abc',
+          'zos:/abc.', #id44 can't end wit a dot
+          ('zos:/' + 'a' * 46), #id4 must be max 44 chars long
+          #'zos:/ab..c', #technically not allowed according to the IBM specs
+          'zos:/id44(8)', #id8 must start with a letter
+          'zos:/id44(asd.asd)' #id8 can only contain letters and numbers
+          'zos:/id44(aaaabbbbc)' #id8 must be max 8 characters long
+          'zos:/id44(',
+          'zos:/id44)',
+          'zos:/id44()',
+          'zos://host:43/id44()?query',
+          'zos://host:43/id44(?query',
+          'zos://host:43/id44)?query',
+          'zos:/?path', #zos path is required
+          'zos://host/?query'
+      ]
+      for uri in tests:
+          with self.subTest(uri=uri):
+              with self.assertRaises(MalformedException):
+                  parser.parse(uri)
+
+    def valid_uris(self, parser):
+        """ Valid uris, that the parser should parse correctly"""
+        default_80 = 80
         tests = {
             #assignment pdf, page 4/6
             'http://disco.unimib.it': {
@@ -406,16 +420,16 @@ class Tests(unittest.TestCase):
                 'scheme': 'mailto',
                 'userinfo': None,
                 'host': None,
-                'port': debatable_80,
+                'port': default_80,
                 'path':None,
                 'query': None,
                 'fragment': None
             },
             'mAilTO:': {
-                'scheme': 'mailto',
+                'scheme': 'mAilTO',
                 'userinfo': None,
                 'host': None,
-                'port': debatable_80,
+                'port': default_80,
                 'path':None,
                 'query': None,
                 'fragment': None
@@ -424,7 +438,7 @@ class Tests(unittest.TestCase):
                 'scheme': 'mailto',
                 'userinfo': 'asdasd',
                 'host': None,
-                'port': debatable_80,
+                'port': default_80,
                 'path':None,
                 'query': None,
                 'fragment': None
@@ -433,7 +447,7 @@ class Tests(unittest.TestCase):
                 'scheme': 'mailto',
                 'userinfo': 'user',
                 'host': 'host',
-                'port': debatable_80,
+                'port': default_80,
                 'path':None,
                 'query': None,
                 'fragment': None
@@ -444,16 +458,16 @@ class Tests(unittest.TestCase):
                 'scheme': 'news',
                 'userinfo': None,
                 'host': None,
-                'port': debatable_80,
+                'port': default_80,
                 'path':None,
                 'query': None,
                 'fragment': None
             },
             'NEwS:': {
-                'scheme': 'news',
+                'scheme': 'NEwS',
                 'userinfo': None,
                 'host': None,
-                'port': debatable_80,
+                'port': default_80,
                 'path':None,
                 'query': None,
                 'fragment': None
@@ -462,7 +476,7 @@ class Tests(unittest.TestCase):
                 'scheme': 'news',
                 'userinfo': None,
                 'host': 'host',
-                'port': debatable_80,
+                'port': default_80,
                 'path':None,
                 'query': None,
                 'fragment': None
@@ -471,7 +485,7 @@ class Tests(unittest.TestCase):
                 'scheme': 'news',
                 'userinfo': None,
                 'host': '127.0.0.1',
-                'port': debatable_80,
+                'port': default_80,
                 'path':None,
                 'query': None,
                 'fragment': None
@@ -482,16 +496,16 @@ class Tests(unittest.TestCase):
                 'scheme': 'tel',
                 'userinfo': None,
                 'host': None,
-                'port': debatable_80,
+                'port': default_80,
                 'path':None,
                 'query': None,
                 'fragment': None
             },
             'TeL:': {
-                'scheme': 'tel',
+                'scheme': 'TeL',
                 'userinfo': None,
                 'host': None,
-                'port': debatable_80,
+                'port': default_80,
                 'path':None,
                 'query': None,
                 'fragment': None
@@ -500,16 +514,16 @@ class Tests(unittest.TestCase):
                 'scheme': 'fax',
                 'userinfo': None,
                 'host': None,
-                'port': debatable_80,
+                'port': default_80,
                 'path':None,
                 'query': None,
                 'fragment': None
             },
             'FAX:+39-327-9856-123': {
-                'scheme': 'fax',
+                'scheme': 'FAX',
                 'userinfo': '+39-327-9856-123',
                 'host': None,
-                'port': debatable_80,
+                'port': default_80,
                 'path':None,
                 'query': None,
                 'fragment': None
@@ -518,7 +532,7 @@ class Tests(unittest.TestCase):
                 'scheme': 'tel',
                 'userinfo': '+393279856123',
                 'host': None,
-                'port': debatable_80,
+                'port': default_80,
                 'path':None,
                 'query': None,
                 'fragment': None
@@ -535,7 +549,7 @@ class Tests(unittest.TestCase):
                 'fragment': None
             },
             'ZOS:': {
-                'scheme': 'zos',
+                'scheme': 'ZOS',
                 'userinfo': None,
                 'host': None,
                 'port': 80,
@@ -576,7 +590,7 @@ class Tests(unittest.TestCase):
         for uri, expected in tests.items():
             with self.subTest(uri=uri, expected=expected):
                 self.assertDictEqual(
-                    self.parser.parse(uri),
+                    parser.parse(uri),
                     expected,
                     f"parsed INCORRECTLY: {uri}"
                 )
