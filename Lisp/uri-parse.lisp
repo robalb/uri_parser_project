@@ -61,7 +61,7 @@
 (defun uri-display (uri-structure &optional (out-stream t))
   (or (null uri-structure)
       (progn
-        (print-uri-element (first uri-structure) out-stream )
+        (print-uri-element (first uri-structure) out-stream)
         (uri-display (rest uri-structure) out-stream))))
 
 (defun print-uri-element (element out-stream)
@@ -194,7 +194,7 @@
   (if (eq (first lista) #\/)
       (let* (
              (path (path-parse-choice (rest lista) scheme))
-             (query (preceded-by-char (leftover path) #\? 'query-parse ))
+             (query (preceded-by-char (leftover path) #\? 'query-parse))
              (fragment (preceded-by-char (leftover query) #\# 'fragment-parse)))
         (list (first path) (first query) (first fragment) (leftover fragment)))
     (list nil nil nil lista)))
