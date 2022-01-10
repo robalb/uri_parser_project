@@ -212,9 +212,12 @@
   (must-end-with (one-or-more-satisfying lista 'identificatorep) ends-with))
 
 (defun host-parse (lista)
-  (let* ((res (one-or-more-satisfying lista 'hostp))
-         (res-rec (recursive-char-identifier (remainder res) #\. 'hostp)))
-    (list (append (first res) (first res-rec)) (remainder res-rec))))
+  (let ((ip (ip-parse lista)))
+    (if (null (first ip))
+        (let* ((res (one-or-more-satisfying lista 'hostp))
+               (res-rec (recursive-char-identifier (remainder res) #\. 'hostp)))
+          (list (append (first res) (first res-rec)) (remainder res-rec)))
+      ip)))
 
 (defun port-parse (lista)
   (one-or-more-satisfying lista 'digitp))
@@ -310,4 +313,36 @@
   (if (null lista)
       0
     (1+ (lunghezza (rest lista)))))
+
+
+
+
+
+(defun ip-parse (lista)
+  (let ((res (ip-parse-aux lista)))
+    (if (eql (length (first res)) 15)
+        res
+      (list nil lista))))
+
+(defun is-nnn (digit1 digit2 digit3)
+  (let ((nnn (list-to-int (list digit1 digit2 digit3))))
+    (and (>= nnn 0)
+         (<= nnn 255))))
+
+
+(defun ip-parse-aux (lista)
+  (let ((res (zero-or-more-satisfying lista 'digitp)))
+    (if (and (not (null (first res)))
+             (eql (length (first res)) 3)
+             (is-nnn (first (first res))
+                     (second (first res))
+                     (third (first res))))
+        (if (eql (first (remainder res)) #\.)
+            (let ((res-rec (ip-parse (rest (remainder res)))))
+              (list (append (append (first res) (list #\.))
+                            (first res-rec)) (remainder res-rec)))
+          res)
+      (list nil lista))))
+
+
 ;;; end of file -- uri_parse.pl
