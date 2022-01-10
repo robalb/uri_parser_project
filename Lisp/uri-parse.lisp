@@ -96,13 +96,19 @@
       (error "Invalid URI")
     (error "Invalid URI: ~A" reason)))
 
-
 (defun remainder (lista)
   "takes in input the list returned from an expression function, and returns 
     the part of the input string that was not parsed by that expression.
     Yes, this is just returning the last element of a list"
   (first (last lista)))
 
+(defun must-end-with (lista char)
+  "Backtracks if the given parser result doesn't end with the given char"
+  (if (eq char nil)
+      lista
+    (if (eq (first (second lista)) char)
+        (list (first lista) (rest (second lista)))
+      (list nil (append (first lista) (second lista))))))
 
 (defun zero-or-more-satisfying (lista pred)
   "parses an expression of the form <Identifier>*
@@ -300,22 +306,6 @@
 
 (defun anyp (char)
   t)
-
-
-(defun must-end-with (lista char)
-  (if (eq char nil)
-      lista
-    (if (eq (first (second lista)) char)
-        (list (first lista) (rest (second lista)))
-      (list nil (append (first lista) (second lista))))))
-
-(defun lunghezza (lista)
-  (if (null lista)
-      0
-    (1+ (lunghezza (rest lista)))))
-
-
-
 
 
 (defun ip-parse (lista)

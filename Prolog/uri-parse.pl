@@ -83,9 +83,7 @@ uri_display(uri(Scheme,
     write('Query: '),
     writeln(Query),
     write('Fragment: '),
-    writeln(Fragment),
-    close(Stream).
-
+    writeln(Fragment).
 
 %%%
 %%%
