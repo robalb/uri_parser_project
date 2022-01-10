@@ -1,41 +1,12 @@
 ;;;; -*- Mode:Lisp -*-
+;;;; begin of file: uri-parse.lisp
 ;;;;
-;;;; begin of file: uri-parse.pl
-;;;; This program implements a URI parser - a simplified version of Rfc3986,
-
-;;; This parser is based on mutually recursive functions/expressions:
-;;; Every expression takes a list of character in input, and returns a list 
-;;; in output. The length of the list is variable. The last element is a list
-;;; containing the characters that were not parsed from the input list.
-;;; The other elements are values such as host, path, query... extracted from
-;;; the input list
+;;;; 865993 Christian Dotti
+;;;; 866359 Adriano Colombo
+;;;; 866135 Alberto Ventafridda
 
 
-(defun string-to-list (string)
-  (coerce string 'list))
-
-(defun list-to-string (l)
-  (if (null l)
-      l
-    (coerce l 'string)))
-
-(defun list-to-int (l)
-  (parse-integer (list-to-string l)))
-
-(defun make-uri (scheme rest)
-  (if (null (first rest))
-      (make-uri-aux scheme (second rest) (third rest) (fourth rest)
-                    (fifth rest) (sixth rest) (seventh rest))
-    (halt-parser)))
-
-(defun make-uri-aux (scheme userinfo host port path query fragment)
-  (list (list "Scheme:" (list-to-string scheme))
-        (list "Userinfo:" (list-to-string userinfo))
-        (list "Host:" (list-to-string host))
-        (list "Port:" (if (null port) 80 (list-to-int port)))
-        (list "Path:" (list-to-string path))
-        (list "Query:" (list-to-string query))
-        (list "Fragment:" (list-to-string fragment))))
+;;; Definizione delle interfacce, come richiesto nella consegna
 
 (defun uri-scheme (uri-structure)
   (second (first uri-structure)))
@@ -58,6 +29,9 @@
 (defun uri-fragment (uri-structure)
   (second (seventh uri-structure)))
 
+(defun uri-parse (stringa)
+  (uri-parse-start (string-to-list stringa)))
+
 (defun uri-display (uri-structure &optional (out-stream t))
   (or (null uri-structure)
       (progn
@@ -67,28 +41,44 @@
 (defun print-uri-element (element out-stream)
   (format out-stream "~11A ~A~%" (first element) (second element)))
 
-(defun uri-parse (stringa)
-  (uri-parse-start (string-to-list stringa)))
 
-(defun uri-parse-start (lista)
-  (let ((scheme (scheme-parse lista)))
-    (let ((scheme-string (string-downcase (list-to-string (first scheme)))))
-      (cond ((string= scheme-string "mailto") 
-             (make-uri (first scheme) (parse-mailto (second scheme))))
-            ((string= scheme-string "news") 
-             (make-uri (first scheme) (parse-news (second scheme))))
-            ((string= scheme-string "tel")
-             (make-uri (first scheme) (parse-telfax (second scheme))))
-            ((string= scheme-string "fax")
-             (make-uri (first scheme) (parse-telfax (second scheme))))
-            ((string= scheme-string "zos")
-             (make-uri (first scheme)
-                       (parse-generic-or-zos (second scheme) "zos")))
-            (t (make-uri (list-to-string (first scheme))
-                         (parse-generic-or-zos
-                          (second scheme) (list-to-string (first scheme)))))))))
+;;; definizione di Funzioni di supporto, per semplificare alcune operazioni 
+;;; ripetute spesso all'interno del programma
 
-;;; Helper functions, that can be composed to create expressions
+(defun string-to-list (string)
+  (coerce string 'list))
+
+(defun list-to-string (l)
+  (if (null l)
+      l
+    (coerce l 'string)))
+
+(defun list-to-int (l)
+  (parse-integer (list-to-string l)))
+
+(defun make-uri (scheme rest)
+  "returns the uri structure, or throws an exception if the remainder of the
+   parsed string is not empty"
+  (if (null (first rest))
+      (make-uri-aux scheme (second rest) (third rest) (fourth rest)
+                    (fifth rest) (sixth rest) (seventh rest))
+    (halt-parser)))
+
+(defun make-uri-aux (scheme userinfo host port path query fragment)
+  (list (list "Scheme:" (list-to-string scheme))
+        (list "Userinfo:" (list-to-string userinfo))
+        (list "Host:" (list-to-string host))
+        (list "Port:" (if (null port) 80 (list-to-int port)))
+        (list "Path:" (list-to-string path))
+        (list "Query:" (list-to-string query))
+        (list "Fragment:" (list-to-string fragment))))
+
+
+;;; Definizione di funzioni il cui scopo è fare in modo
+;;; che la struttura del programma rispecchi il più possibile
+;;; quella delle regole di produzione della grammatica che deve riconoscere.
+;;; Esempio: La produzione [userinfo @] può essere definita tramite
+;;; le funzioni (must-end-with @ (one-or-more 'identificatore))
 
 (defun halt-parser (&optional reason)
   "Halt the parser, by signaling a fatal error"
@@ -119,7 +109,6 @@
       (list (cons (first lista) (first res-ric))
             (second res-ric))))) 
 
-
 (defun one-or-more-satisfying (lista pred)
   "parses an expression of the form <Identifier>+
    The identifier is composed by characters satisfying the given predicate"
@@ -134,10 +123,9 @@
    makes it work only if it's preceded by the given char"
   (if (eql (first lista) char)
       (if (null (rest lista))
-          (halt-parser (format nil "unexpected EOF after ~A" char))
+          (halt-parser (format nil "unexpected end of string after ~A" char))
         (funcall expr (rest lista)))
     (list nil lista)))
-
 
 (defun recursive-char-identifier (lista char identifier)
   "parses an expression of the form ['Char' <identifier> ]* "
@@ -151,8 +139,30 @@
          (second res-rec)))
     (list nil lista)))
 
-;;; end of helper functions
-;;; expressions for the URI parser
+
+;;; Definizione delle funzioni mutualmente recursive per il 
+;;; Recursive-descent-parser.
+;;; Ogni funzione implementa il riconoscimento di un simbolo non terminale
+;;; della grammatica descritta nella consegna.
+;;; Dove necessario, le funzioni eseguono backtracking.
+
+(defun uri-parse-start (lista)
+  (let* ((scheme (scheme-parse lista))
+         (scheme-str (list-to-string (first scheme)))
+         (scheme-str-down (string-downcase scheme-str)))
+    (make-uri (first scheme)
+              (cond ((string= scheme-str-down "mailto") 
+                     (parse-mailto (remainder scheme)))
+                    ((string= scheme-str-down "news") 
+                     (parse-news (remainder scheme)))
+                    ((string= scheme-str-down "tel")
+                     (parse-telfax (remainder scheme)))
+                    ((string= scheme-str-down "fax")
+                     (parse-telfax (remainder scheme)))
+                    ((string= scheme-str-down "zos")
+                     (parse-generic-or-zos (remainder scheme) "zos"))
+                    (t
+                     (parse-generic-or-zos (remainder scheme) scheme-str))))))
 
 (defun parse-mailto (lista)
   (if (null lista)
@@ -161,20 +171,17 @@
            (host (preceded-by-char (remainder userinfo) #\@ 'host-parse)))
       (list (remainder host) (first userinfo) (first host) nil nil nil nil))))
 
-
 (defun parse-news (lista)
   (if (null lista)
       (list nil nil nil nil nil nil nil)
     (let ((host (host-parse lista)))
       (list (remainder host) nil (first host) nil nil nil nil))))
 
-
 (defun parse-telfax (lista)
   (if (null lista)
       (list nil nil nil nil nil nil nil)
     (let ((userinfo (userinfo-parse lista)))
       (list (remainder userinfo) (first userinfo) nil nil nil nil nil))))
-
 
 (defun parse-generic-or-zos (lista scheme)
   (let ((authorithy (authorithy-parse lista)))
@@ -183,7 +190,6 @@
       (list (remainder path-query-fragment) (first authorithy)
             (second authorithy) (third authorithy) (first path-query-fragment)
             (second path-query-fragment) (third path-query-fragment)))))
-
 
 (defun authorithy-parse (lista)
   "Parse the expression '//' [ userinfo '@'] host [':' port]"
@@ -237,7 +243,8 @@
                                  (first res-44) (list #\() (first res-8)
                                  (list #\)))
                     (rest (remainder res-8)))
-            (halt-parser "missing closing bracket after id8")))
+            (halt-parser (format nil "missing closing bracket after (~A" 
+                                 (list-to-string (first res-8))))))
       res-44)))
 
 (defun id44 (lista)
@@ -265,12 +272,15 @@
         (list (append (first res) (first res-rec))
               (remainder res-rec))))))
 
-
 (defun query-parse (lista)
   (one-or-more-satisfying lista 'queryp))
 
 (defun fragment-parse (lista)
   (one-or-more-satisfying lista 'anyp))
+
+
+;;; Definizione dei predicati per il riconoscimento dei caratteri all'interno
+;;; degli identificatori
 
 (defun identificatorep (char)
   (and (char/= char #\/)
@@ -308,6 +318,12 @@
   t)
 
 
+;;; Le regole per il riconoscimento di un IPv4 sono ridondanti e non
+;;; contribuiscono al funzionamento del programma, dal momento che non
+;;; è richiesto di differenziare in alcun modo tra un host e un IPv4.
+;;; Sono tuttavia presenti nella grammatica della consegna, e per questo motivo
+;;; Le abbiamo implementate e integrate nel programma
+
 (defun ip-parse (lista)
   (let ((res (ip-parse-aux lista)))
     (if (eql (length (first res)) 15)
@@ -318,7 +334,6 @@
   (let ((nnn (list-to-int (list digit1 digit2 digit3))))
     (and (>= nnn 0)
          (<= nnn 255))))
-
 
 (defun ip-parse-aux (lista)
   (let ((res (zero-or-more-satisfying lista 'digitp)))
@@ -334,5 +349,4 @@
           res)
       (list nil lista))))
 
-
-;;; end of file -- uri_parse.pl
+;;; end of file -- uri_parse.lisp

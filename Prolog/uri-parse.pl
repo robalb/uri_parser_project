@@ -1,6 +1,9 @@
 /* -*- Mode: Prolog -*- */
 %  begin of file: uri-parse.pl
-
+%
+% 865993 Christian Dotti
+% 866359 Adriano Colombo
+% 866135 Alberto Ventafridda
 
 %%% uri_parse/2
 %%% uri_parse(URIString, uri)
@@ -109,21 +112,18 @@ controllo_insensitive_ric([H1 | T1], [H2 | T2]) :-
     controllo_insensitive_ric(T1, T2).
 
 uri_parse_start(Scheme, Userinfo, Host, ['8', '0'], [], [], []) -->
-    %%%{ string_chars("mailto", Scheme) },
     scheme(Scheme),
     [':'],
     { controllo_insensitive("mailto", Scheme), ! },
     mailto(Userinfo, Host).
 
 uri_parse_start(Scheme, [], Host, ['8', '0'], [], [], []) -->
-    %%%{ string_chars("news", Scheme) },
     scheme(Scheme),
     [':'],
     { controllo_insensitive("news", Scheme), ! },
     news_host(Host).
 
 uri_parse_start(Scheme, Userinfo, [], ['8', '0'], [], [], []) -->
-    %%%{ tel_fax(Tel_Fax), string_chars(Tel_Fax, Scheme) },
     scheme(Scheme),
     [':'],
     { tel_fax(Tel_Fax),
@@ -131,7 +131,6 @@ uri_parse_start(Scheme, Userinfo, [], ['8', '0'], [], [], []) -->
     tel_fax_userinfo(Userinfo).
 
 uri_parse_start(Scheme, Userinfo, Host, Port, Path, Query, Fragment) -->
-    %%%{ string_chars("zos", Scheme) },
     scheme(Scheme),
     [':'],
     { controllo_insensitive("zos", Scheme), ! },
@@ -205,9 +204,8 @@ host(Host) -->
     host_opt(T),
     { append(H, T, Host) }.
 
-%%% useless: the grammar already recognizes the structure of an ipv4
-% host(Host) -->
-%     indirizzo_ip(Host).
+ host(Host) -->
+    indirizzo_ip(Host).
 
 host_opt(['.' | Host_opt]) -->
     ['.'],
@@ -378,7 +376,7 @@ single_host_character(Char) :-
 %%% contribuiscono al funzionamento del programma, dal momento che non
 %%% è richiesto di differenziare in alcun modo tra un host e un IPv4.
 %%% Sono tuttavia presenti nella grammatica della consegna, e per questo motivo
-%%% Le abbiamo implementate.
+%%% Le abbiamo implementate e integrate nel programma.
 
 indirizzo_ip(Ip) -->
     terzina(NNN1), {length(NNN1, 3)}, ['.'],
