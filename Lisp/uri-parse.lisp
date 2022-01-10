@@ -97,7 +97,7 @@
     (error "Invalid URI: ~A" reason)))
 
 
-(defun leftover (lista)
+(defun remainder (lista)
   "takes in input the list returned from an expression function, and returns 
     the part of the input string that was not parsed by that expression.
     Yes, this is just returning the last element of a list"
@@ -139,7 +139,7 @@
       (let* (
              (res (one-or-more-satisfying (rest lista) identifier))
              (res-rec (recursive-char-identifier
-                       (leftover res) char identifier)))
+                       (remainder res) char identifier)))
         (list
          (append (append (list char) (first res)) (first res-rec))
          (second res-rec)))
@@ -152,29 +152,29 @@
   (if (null lista)
       (list nil nil nil nil nil nil nil)
     (let* ((userinfo (userinfo-parse lista))
-           (host (preceded-by-char (leftover userinfo) #\@ 'host-parse)))
-      (list (leftover host) (first userinfo) (first host) nil nil nil nil))))
+           (host (preceded-by-char (remainder userinfo) #\@ 'host-parse)))
+      (list (remainder host) (first userinfo) (first host) nil nil nil nil))))
 
 
 (defun parse-news (lista)
   (if (null lista)
       (list nil nil nil nil nil nil nil)
     (let ((host (host-parse lista)))
-      (list (leftover host) nil (first host) nil nil nil nil))))
+      (list (remainder host) nil (first host) nil nil nil nil))))
 
 
 (defun parse-telfax (lista)
   (if (null lista)
       (list nil nil nil nil nil nil nil)
     (let ((userinfo (userinfo-parse lista)))
-      (list (leftover userinfo) (first userinfo) nil nil nil nil nil))))
+      (list (remainder userinfo) (first userinfo) nil nil nil nil nil))))
 
 
 (defun parse-generic-or-zos (lista scheme)
   (let ((authorithy (authorithy-parse lista)))
     (let ((path-query-fragment
            (path-query-fragment-parse (fourth authorithy) scheme)))
-      (list (leftover path-query-fragment) (first authorithy)
+      (list (remainder path-query-fragment) (first authorithy)
             (second authorithy) (third authorithy) (first path-query-fragment)
             (second path-query-fragment) (third path-query-fragment)))))
 
@@ -184,9 +184,9 @@
   (if (and (eql (first lista) #\/) (eql (second lista) #\/))
       (let* (
              (userinfo (userinfo-parse (rest (rest lista)) #\@))
-             (host (host-parse (leftover userinfo)))
-             (port (preceded-by-char (leftover host) #\: 'port-parse)))
-        (list (first userinfo) (first host) (first port) (leftover port)))
+             (host (host-parse (remainder userinfo)))
+             (port (preceded-by-char (remainder host) #\: 'port-parse)))
+        (list (first userinfo) (first host) (first port) (remainder port)))
     (list nil nil nil lista)))
 
 (defun path-query-fragment-parse (lista scheme)
@@ -194,9 +194,10 @@
   (if (eq (first lista) #\/)
       (let* (
              (path (path-parse-choice (rest lista) scheme))
-             (query (preceded-by-char (leftover path) #\? 'query-parse))
-             (fragment (preceded-by-char (leftover query) #\# 'fragment-parse)))
-        (list (first path) (first query) (first fragment) (leftover fragment)))
+             (query (preceded-by-char (remainder path) #\? 'query-parse))
+             (fragment (preceded-by-char
+                        (remainder query) #\# 'fragment-parse)))
+        (list (first path) (first query) (first fragment) (remainder fragment)))
     (list nil nil nil lista)))
 
 (defun path-parse-choice (lista scheme)
@@ -212,21 +213,21 @@
 
 (defun host-parse (lista)
   (let* ((res (one-or-more-satisfying lista 'hostp))
-         (res-rec (recursive-char-identifier (leftover res) #\. 'hostp)))
-    (list (append (first res) (first res-rec)) (leftover res-rec))))
+         (res-rec (recursive-char-identifier (remainder res) #\. 'hostp)))
+    (list (append (first res) (first res-rec)) (remainder res-rec))))
 
 (defun port-parse (lista)
   (one-or-more-satisfying lista 'digitp))
 
 (defun zos-path-parse (lista)
   (let ((res-44 (id44 lista)))
-    (if (eql (first (leftover res-44)) #\()
-        (let ((res-8 (id8 (rest (leftover res-44)))))
-          (if (eql (first (leftover res-8)) #\))
+    (if (eql (first (remainder res-44)) #\()
+        (let ((res-8 (id8 (rest (remainder res-44)))))
+          (if (eql (first (remainder res-8)) #\))
               (list (concatenate 'list 
                                  (first res-44) (list #\() (first res-8)
                                  (list #\)))
-                    (rest (leftover res-8)))
+                    (rest (remainder res-8)))
             (halt-parser "missing closing bracket after id8")))
       res-44)))
 
@@ -251,9 +252,9 @@
     (if (null (first res))
         (list nil lista)
       (let ((res-rec
-             (recursive-char-identifier (leftover res) #\/ 'identificatorep)))
+             (recursive-char-identifier (remainder res) #\/ 'identificatorep)))
         (list (append (first res) (first res-rec))
-              (leftover res-rec))))))
+              (remainder res-rec))))))
 
 
 (defun query-parse (lista)
