@@ -1,5 +1,5 @@
 
-# URI-parser - lisp
+# URI-parser - Lisp
 
 ## Componenti del gruppo
 
@@ -20,7 +20,7 @@ del campo, ottenuto tramite il parsing.
 Nel caso in cui un uri non sia valido viene restituito solo il valore nil
 
 ## funzioni di common lisp utilizzate:
-- funzioni accennate a lezioni, pertanto non ne verr‡ spiegato l'utilizzo:
+- funzioni accennate a lezioni, pertanto non ne verr√† spiegato l'utilizzo:
 cons
 list
 first
