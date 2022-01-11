@@ -62,7 +62,7 @@
 (defun make-uri (scheme rest)
   "returns the uri structure, or throws an exception if the remainder of the
    parsed string is not empty"
-  (if (haltedp rest)
+  (if (or (haltedp scheme) (haltedp rest))
       (halt-parser)
     (if (null (first rest))
         (make-uri-aux scheme (second rest) (third rest) (fourth rest)
@@ -144,9 +144,11 @@
                 (halt-parser)
               (let ((res-rec (recursive-char-identifier
                               (remainder res) char identifier)))
-                (list
-                 (append (append (list char) (first res)) (first res-rec))
-                 (second res-rec)))))
+                (if (haltedp res-rec)
+                    (halt-parser)
+                  (list
+                   (append (append (list char) (first res)) (first res-rec))
+                   (second res-rec))))))
     (list nil lista)))
   
 
@@ -177,9 +179,13 @@
 (defun parse-mailto (lista)
   (if (null lista)
       (list nil nil nil nil nil nil nil)
-    (let* ((userinfo (userinfo-parse lista)) ;;to halt
-           (host (preceded-by-char (remainder userinfo) #\@ 'host-parse)))
-      (list (remainder host) (first userinfo) (first host) nil nil nil nil))))
+    (let ((userinfo (userinfo-parse lista)))
+      (if (haltedp userinfo)
+          (halt-parser)
+           (let ((host (preceded-by-char (remainder userinfo) #\@ 'host-parse)))
+             (if (haltedp host)
+                 (halt-parser)
+               (list (remainder host) (first userinfo) (first host) nil nil nil nil)))))))
 
 (defun parse-news (lista)
   (if (null lista)
@@ -263,6 +269,7 @@
                    (list (append (first res) (first res-rec)) (remainder res-rec))))))
       ip)))
 
+
 (defun port-parse (lista)
   (one-or-more-satisfying lista 'digitp))
 
@@ -305,12 +312,14 @@
   (let ((res (zero-or-more-satisfying lista 'identificatorep)))
     (if (null (first res))
         (list nil lista)
-      (let ((res-rec
-             (recursive-char-identifier (remainder res) #\/ 'identificatorep)))
-        (if (haltedp res-rec)
-            (halt-parser)
-          (list (append (first res) (first res-rec))
-                (remainder res-rec)))))))
+      (if (haltedp res)
+          (halt-parser)
+        (let ((res-rec
+               (recursive-char-identifier (remainder res) #\/ 'identificatorep)))
+          (if (haltedp res-rec)
+              (halt-parser)
+            (list (append (first res) (first res-rec))
+                  (remainder res-rec))))))))
 
 (defun query-parse (lista)
   (one-or-more-satisfying lista 'queryp))
