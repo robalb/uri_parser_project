@@ -150,7 +150,7 @@
                    (append (append (list char) (first res)) (first res-rec))
                    (second res-rec))))))
     (list nil lista)))
-  
+
 
 ;;; Definizione delle funzioni mutualmente recursive per il 
 ;;; Recursive-descent-parser.
@@ -185,7 +185,8 @@
            (let ((host (preceded-by-char (remainder userinfo) #\@ 'host-parse)))
              (if (haltedp host)
                  (halt-parser)
-               (list (remainder host) (first userinfo) (first host) nil nil nil nil)))))))
+               (list (remainder host)
+                     (first userinfo) (first host) nil nil nil nil)))))))
 
 (defun parse-news (lista)
   (if (null lista)
@@ -212,8 +213,9 @@
         (if (haltedp path-query-fragment)
             (halt-parser)
           (list (remainder path-query-fragment) (first authorithy)
-                (second authorithy) (third authorithy) (first path-query-fragment)
-                (second path-query-fragment) (third path-query-fragment)))))))
+                (second authorithy) (third authorithy)
+                (first path-query-fragment) (second path-query-fragment)
+                (third path-query-fragment)))))))
 
 (defun authorithy-parse (lista)
   "Parse the expression '//' [ userinfo '@'] host [':' port]"
@@ -227,7 +229,8 @@
               (let ((port (preceded-by-char (remainder host) #\: 'port-parse)))
                 (if (haltedp port)
                     (halt-parser)
-                  (list (first userinfo) (first host) (first port) (remainder port))))))))
+                  (list (first userinfo)
+                        (first host) (first port) (remainder port))))))))
     (list nil nil nil lista)))
 
 (defun path-query-fragment-parse (lista scheme)
@@ -243,7 +246,8 @@
                         (remainder query) #\# 'fragment-parse)))
                 (if (haltedp fragment)
                     (halt-parser)
-                  (list (first path) (first query) (first fragment) (remainder fragment))))))))
+                  (list (first path) (first query)
+                        (first fragment) (remainder fragment))))))))
     (list nil nil nil lista)))
 
 (defun path-parse-choice (lista scheme)
@@ -263,10 +267,12 @@
         (let ((res (one-or-more-satisfying lista 'hostp)))
           (if (haltedp res)
               (halt-parser)
-               (let ((res-rec (recursive-char-identifier (remainder res) #\. 'hostp)))
+               (let ((res-rec (recursive-char-identifier (remainder res)
+                                                         #\. 'hostp)))
                  (if (haltedp res-rec)
                      (halt-parser)
-                   (list (append (first res) (first res-rec)) (remainder res-rec))))))
+                   (list (append (first res) (first res-rec))
+                         (remainder res-rec))))))
       ip)))
 
 
@@ -315,7 +321,8 @@
       (if (haltedp res)
           (halt-parser)
         (let ((res-rec
-               (recursive-char-identifier (remainder res) #\/ 'identificatorep)))
+               (recursive-char-identifier (remainder res)
+                                          #\/ 'identificatorep)))
           (if (haltedp res-rec)
               (halt-parser)
             (list (append (first res) (first res-rec))
@@ -325,25 +332,7 @@
   (one-or-more-satisfying lista 'queryp))
 
 (defun fragment-parse (lista)
-  (one-or-more-satisfying lista 'anyp))
-
-
-;;; Definizione dei predicati per il riconoscimento dei caratteri all'interno
-;;; degli identificatori
-
-(defun identificatorep (char)
-  (and (char/= char #\/)
-       (char/= char #\?)
-       (char/= char #\#)
-       (char/= char #\@)
-       (char/= char #\:)))
-
-(defun hostp (char)
-  (and (char/= char #\.)
-       (identificatorep char)))
-
-(defun queryp (char)
-  (char/= char #\#))
+  (one-or-more-satisfying lista 'charp))
 
 (defun id44p (char)
   (or (alfanump char)
@@ -352,10 +341,6 @@
 (defun id8p (char)
   (alfanump char))
 
-(defun alfanump (char)
-  (or (alfap char)
-      (digitp char)))
-
 (defun alfap (char)
   (or (and (char<= char #\Z) (char>= char #\A))
       (and (char<= char #\z) (char>= char #\a))))
@@ -363,8 +348,33 @@
 (defun digitp (char)
   (and (char<= char #\9) (char>= char #\0)))
 
-(defun anyp (char)
-  t)
+(defun alfanump (char)
+  (or (alfap char)
+      (digitp char)))
+
+
+;;; Definizione progressivamente restrittiva dei predicati per il riconoscimento
+;;; dei caratteri all'interno degli identificatori.
+;;; Per semplicità, a differenza dell'rfc, definiamo come base senza restrizioni
+;;; qualsiasi carattere stampabile dello standard ascii, ovvero qualsiasi
+;;; carattere nel range 0x21 - 0x7E (lo spazio (0x20) è escluso)
+
+(defun charp (char)
+  (char>= char #\!))
+
+(defun queryp (char)
+  (and (charp char)(char/= char #\#)))
+
+(defun identificatorep (char)
+  (and (queryp char)
+       (char/= char #\/)
+       (char/= char #\?)
+       (char/= char #\@)
+       (char/= char #\:)))
+
+(defun hostp (char)
+  (and (char/= char #\.)
+       (identificatorep char)))
 
 
 ;;; Le regole per il riconoscimento di un IPv4 sono ridondanti e non

@@ -7,20 +7,14 @@
 - 866359 Adriano Colombo
 - 866135 Alberto Ventafridda
 
-Questo codice Prolog implementa un Recursive-Descendent-Parser per riconoscere la
+Questo progetto è open source e disponibile su 
+[github](https://github.com/robalb/uri_parser_project)
+I test utilizzati sono consultabili al seguente link
+https://github.com/robalb/uri_parser_project/blob/master/tests/tests_uri.py
+
+Questo codice Prolog utilizza DCG (Definite Close Grammar) per riconoscere la
 grammatica URI descritta nella consegna.
 
-Ai fini dell'implementazione vengono sfruttate le DCG (Definite Close Grammar)
-
-Il Predicato uri_parse/2 ha come primo termine una stringa e come secondo
-un termine composto:
-uri(Scheme, Userinfo, Host, Port, Path, Query, Fragment)
-
-## predicati swi-prolog utilizzati
-- predicati accennati a lezioni:
-TODO
--predicati non accennati a lezioni:
-TODO
-#esecuzione
-
-TODO
+Ai fini dell'implementazione, un carattere è considerato come
+qualsiasi carattere stampabile dello standard ascii, ovvero qualsiasi
+carattere nel range 0x21 - 0x7E (lo spazio (0x20) è quindi escluso)

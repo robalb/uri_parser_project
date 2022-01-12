@@ -7,48 +7,19 @@
 - 866359 Adriano Colombo
 - 866135 Alberto Ventafridda
 
+Questo progetto è open source e disponibile su 
+[github](https://github.com/robalb/uri_parser_project)
+I test utilizzati sono consultabili al seguente link
+https://github.com/robalb/uri_parser_project/blob/master/tests/tests_uri.py
+
 Questo codice LISP implementa un Recursive-Descent-Parser per riconoscere la
 grammatica URI descritta nella consegna.
 
-La funzione Uri-parse 
-Se chiamata con un uri valido restituisce una struttura implementata tramite 
-liste:
-E' una lista composta da 7 liste, una per ogni campo di una URI,
-Queste 7 liste hanno come primo elemento il nome del campo che
-rappresentano, ad esempio "Scheme:" e come secondo elemento il valore
-del campo, ottenuto tramite il parsing.
-Nel caso in cui un uri non sia valido viene restituito solo il valore nil
+La funzione uri-parse 
+Se chiamata con un uri valido restituisce una struttura implementata tramite
+liste.
+Nel caso in cui un uri non sia valido viene restituito solo il valore nil.
 
-## funzioni di common lisp utilizzate:
-- funzioni accennate a lezioni, pertanto non ne verr� spiegato l'utilizzo:
-cons
-list
-first
-second
-...
-seventh
-let
-let*
-if
-cond
-or
->
->=
-<=
-and
-not
-null
-eql
-append
-
-- funzioni non accennate a lezioni:
-progn - scrivere spiegazione
-last - restituisce l'ultimo elemento di una lista
-coerce - scrivere spiegazione
-parse-integer - preso in input una stringa restituisce l'intero
-che la stringa rappresenta, esempio
-(parse-integer "42") ha come risultato 42
-
-## esecuzione
-
-TODO
+Ai fini dell'implementazione, un carattere è considerato come
+qualsiasi carattere stampabile dello standard ascii, ovvero qualsiasi
+carattere nel range 0x21 - 0x7E (lo spazio (0x20) è quindi escluso)
