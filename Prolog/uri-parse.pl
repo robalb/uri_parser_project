@@ -5,9 +5,7 @@
 % 866359 Adriano Colombo
 % 866135 Alberto Ventafridda
 
-%%% uri_parse/2
-%%% uri_parse(URIString, uri)
-%%%
+%%% Definizione delle interfacce, come richiesto nella consegna
 
 uri_parse(URIString,
           uri(Scheme,
@@ -37,32 +35,6 @@ uri_parse(URIString,
     !.
 
 
-%%% number_codes_wrapper
-%%%
-%%% Serve per avere come porta un numero e non un atomo
-
-number_codes_wrapper(A, B) :-
-    length(B, C),
-    C is 0,
-    A = [].
-number_codes_wrapper(A, B) :-
-    number_codes(A,B).
-
-
-%%%
-%%%
-
-atom_chars_wrapper(A, B) :-
-    length(B, C),
-    C is 0,
-    A = [].
-atom_chars_wrapper(A, B) :-
-    atom_chars(A, B).
-
-
-%%%
-%%%
-
 uri_display(Uri) :-
     uri_display(Uri, user_output).
 uri_display(uri(Scheme,
@@ -88,8 +60,30 @@ uri_display(uri(Scheme,
     write('Fragment: '),
     writeln(Fragment).
 
-%%%
-%%%
+
+% number_codes_wrapper/2
+%
+% Permette di avere come porta un numero e non un atomo
+%
+number_codes_wrapper(A, B) :-
+    length(B, C),
+    C is 0,
+    A = [].
+number_codes_wrapper(A, B) :-
+    number_codes(A,B).
+
+
+% atom_codes_wrapper/2
+%
+% permette di avere una lista vuota al posto di un atomo vuoto
+%
+atom_chars_wrapper(A, B) :-
+    length(B, C),
+    C is 0,
+    A = [].
+atom_chars_wrapper(A, B) :-
+    atom_chars(A, B).
+
 
 controllo_insensitive(String, List) :-
     string_codes(String, List1),
@@ -110,6 +104,10 @@ controllo_insensitive_ric([H1 | T1], [H2 | T2]) :-
     H1 is H2 + 32,
     !,
     controllo_insensitive_ric(T1, T2).
+
+
+%%% Dichiarazione delle DCG per il riconoscimento della grammatica descritta
+%%% nella consegna.
 
 uri_parse_start(Scheme, Userinfo, Host, ['8', '0'], [], [], []) -->
     scheme(Scheme),
@@ -144,20 +142,15 @@ uri_parse_start(Scheme, Userinfo, Host, Port, Path, Query, Fragment) -->
     path_query_frag(Path, Query, Fragment).
 
 
-%%%
-%%% regole tel/fax
-
 tel_fax(Tel_Fax) :- Tel_Fax = "tel".
 tel_fax(Tel_Fax) :- Tel_Fax = "fax".
+
 
 tel_fax_userinfo(A) -->
     identificatore(A).
 tel_fax_userinfo([]) -->
     [].
 
-
-%%%
-%%% regole mailto
 
 mailto(Userinfo, []) -->
     identificatore(Userinfo).
@@ -167,17 +160,11 @@ mailto([], []) -->
     [].
 
 
-%%%
-%%% regole news
-
 news_host(Host) -->
     host(Host).
 news_host([]) -->
     [].
 
-
-%%%
-%%% regole generali e zos
 
 scheme(Scheme) -->
     identificatore(Scheme).
@@ -203,9 +190,9 @@ host(Host) -->
     identificatore_host(H),
     host_opt(T),
     { append(H, T, Host) }.
-
 host(Host) -->
     indirizzo_ip(Host).
+
 
 host_opt(['.' | Host_opt]) -->
     ['.'],
@@ -248,6 +235,7 @@ path(Path) -->
 path([])  -->
     [].
 
+
 path_opt([ '/' | Path_opt]) -->
     ['/'],
     identificatore(H),
@@ -273,10 +261,12 @@ zos_path(Path) -->
         append(H, T2, Path)
     }.
 
+
 id44([H | T]) -->
     [H],
     { single_alphabet_letter(H) },
     one_or_more(T, single_id44_character).
+
 
 id8([H | T]) -->
     [H],
@@ -305,7 +295,6 @@ identificatore_host(Chars) -->
     one_or_more(Chars, single_host_character).
 
 
-%%%
 %%% Definizione di predicati di supporto
 
 one_or_more([H | T], Pred) -->
@@ -345,7 +334,6 @@ single_id44_character(Char) :-
     single_alphanum_letter(Char).
 
 
-%%%
 %%% Definizione di carattere, progressivamente restrittiva.
 %%% Per semplicità, a differenza dell'rfc, definiamo come base senza restrizioni
 %%% qualsiasi carattere stampabile dello standard ascii, ovvero qualsiasi
@@ -371,7 +359,6 @@ single_host_character(Char) :-
     Char \= '.',
     single_identifier_character(Char).
 
-%%%
 %%% Le regole per il riconoscimento di un IPv4 sono ridondanti e non
 %%% contribuiscono al funzionamento del programma, dal momento che non
 %%% è richiesto di differenziare in alcun modo tra un host e un IPv4.

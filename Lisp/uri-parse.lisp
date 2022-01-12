@@ -30,10 +30,7 @@
   (second (seventh uri-structure)))
 
 (defun uri-parse (stringa)
-  (let ((uri (uri-parse-start (string-to-list stringa))))
-    (if (haltedp uri)
-        (error "wrong syntax in uri")
-      uri)))
+  (uri-parse-start (string-to-list stringa)))
 
 (defun uri-display (uri-structure &optional (out-stream t))
   (or (null uri-structure)
