@@ -82,7 +82,7 @@
 ;;; Esempio: La produzione [userinfo @] può essere definita tramite
 ;;; le funzioni (must-end-with @ (one-or-more 'identificatore))
 
-(defun halt-parser (&optional reason)
+(defun halt-parser ()
   "Halts the parser"
   nil)
 (defun haltedp (lista)
