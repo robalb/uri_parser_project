@@ -33,7 +33,6 @@ class Tests(unittest.TestCase):
           'zos:/',
           #https://elearning.unimib.it/mod/forum/discuss.php?d=189837#p307681
           'zos://you@themainframe.bigiron.fe/hlq.source.fortran(svd)/some/more/path',
-          #Telegram:
           #SCHEME
           's@:', #invalid characters
           's/:',
