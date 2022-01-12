@@ -30,10 +30,10 @@
   (second (seventh uri-structure)))
 
 (defun uri-parse (stringa)
- (let ((uri (uri-parse-start (string-to-list stringa))))
-   (if (haltedp uri)
-       (error "wrong syntax in uri")
-     uri)))
+  (let ((uri (uri-parse-start (string-to-list stringa))))
+    (if (haltedp uri)
+        (error "wrong syntax in uri")
+      uri)))
 
 (defun uri-display (uri-structure &optional (out-stream t))
   (or (null uri-structure)
@@ -140,15 +140,15 @@
   "parses an expression of the form ['Char' <identifier> ]* "
   (if (eq (first lista) char)
       (let ((res (one-or-more-satisfying (rest lista) identifier)))
-            (if (haltedp res)
+        (if (haltedp res)
+            (halt-parser)
+          (let ((res-rec (recursive-char-identifier
+                          (remainder res) char identifier)))
+            (if (haltedp res-rec)
                 (halt-parser)
-              (let ((res-rec (recursive-char-identifier
-                              (remainder res) char identifier)))
-                (if (haltedp res-rec)
-                    (halt-parser)
-                  (list
-                   (append (append (list char) (first res)) (first res-rec))
-                   (second res-rec))))))
+              (list
+               (append (append (list char) (first res)) (first res-rec))
+               (second res-rec))))))
     (list nil lista)))
 
 
@@ -182,11 +182,11 @@
     (let ((userinfo (userinfo-parse lista)))
       (if (haltedp userinfo)
           (halt-parser)
-           (let ((host (preceded-by-char (remainder userinfo) #\@ 'host-parse)))
-             (if (haltedp host)
-                 (halt-parser)
-               (list (remainder host)
-                     (first userinfo) (first host) nil nil nil nil)))))))
+        (let ((host (preceded-by-char (remainder userinfo) #\@ 'host-parse)))
+          (if (haltedp host)
+              (halt-parser)
+            (list (remainder host)
+                  (first userinfo) (first host) nil nil nil nil)))))))
 
 (defun parse-news (lista)
   (if (null lista)
@@ -202,7 +202,7 @@
     (let ((userinfo (userinfo-parse lista)))
       (if (haltedp userinfo)
           (halt-parser)
-      (list (remainder userinfo) (first userinfo) nil nil nil nil nil)))))
+        (list (remainder userinfo) (first userinfo) nil nil nil nil nil)))))
 
 (defun parse-generic-or-zos (lista scheme)
   (let ((authorithy (authorithy-parse lista)))
@@ -243,7 +243,7 @@
             (if (haltedp query)
                 (halt-parser)
               (let ((fragment (preceded-by-char
-                        (remainder query) #\# 'fragment-parse)))
+                               (remainder query) #\# 'fragment-parse)))
                 (if (haltedp fragment)
                     (halt-parser)
                   (list (first path) (first query)
@@ -267,12 +267,12 @@
         (let ((res (one-or-more-satisfying lista 'hostp)))
           (if (haltedp res)
               (halt-parser)
-               (let ((res-rec (recursive-char-identifier (remainder res)
-                                                         #\. 'hostp)))
-                 (if (haltedp res-rec)
-                     (halt-parser)
-                   (list (append (first res) (first res-rec))
-                         (remainder res-rec))))))
+            (let ((res-rec (recursive-char-identifier (remainder res)
+                                                      #\. 'hostp)))
+              (if (haltedp res-rec)
+                  (halt-parser)
+                (list (append (first res) (first res-rec))
+                      (remainder res-rec))))))
       ip)))
 
 
