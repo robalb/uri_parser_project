@@ -236,7 +236,7 @@ path([])  -->
     [].
 
 
-path_opt([ '/' | Path_opt]) -->
+path_opt(['/' | Path_opt]) -->
     ['/'],
     identificatore(H),
     path_opt(T),
