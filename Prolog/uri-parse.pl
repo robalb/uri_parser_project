@@ -123,6 +123,12 @@ uri_parse_start(Scheme, [], Host, ['8', '0'], [], [], []) -->
     { controllo_insensitive("news", Scheme), ! },
     news_host(Host).
 
+uri_parse_start(Scheme, [], Host, ['8', '0'], [], [], []) -->
+    scheme(Scheme),
+    [':'],
+    { controllo_insensitive("iptest", Scheme), ! },
+    indirizzo_ip(Host).
+
 uri_parse_start(Scheme, Userinfo, [], ['8', '0'], [], [], []) -->
     scheme(Scheme),
     [':'],
@@ -133,9 +139,20 @@ uri_parse_start(Scheme, Userinfo, [], ['8', '0'], [], [], []) -->
 uri_parse_start(Scheme, Userinfo, Host, Port, Path, Query, Fragment) -->
     scheme(Scheme),
     [':'],
-    { controllo_insensitive("zos", Scheme), ! },
+    { controllo_insensitive("zos", Scheme) },
     authorithy(Userinfo, Host, Port),
-    zos_path_query_frag(Path, Query, Fragment).
+    slash_zos_path(Path),
+    query(Query),
+    fragment(Fragment).
+
+uri_parse_start(Scheme, [], [], ['8', '0'], Path, Query, Fragment) -->
+    scheme(Scheme),
+    [':'],
+    { controllo_insensitive("zos", Scheme), ! },
+    slash(_),
+    zos_path_opt(Path),
+    query(Query),
+    fragment(Fragment).
 
 uri_parse_start(Scheme, Userinfo, Host, Port, Path, Query, Fragment) -->
     scheme(Scheme),
@@ -148,7 +165,7 @@ uri_parse_start(Scheme, Userinfo, Host, Port, Path, Query, Fragment) -->
 uri_parse_start(Scheme, [], [], ['8', '0'], Path, Query, Fragment) -->
     scheme(Scheme),
     [':'],
-    slash(),
+    slash(_),
     path(Path),
     query(Query),
     fragment(Fragment).
@@ -197,8 +214,6 @@ authorithy(Userinfo, Host, Port) -->
     userinfo(Userinfo),
     host(Host),
     port(Port).
-% authorithy([], [], ['8', '0']) -->
-%     [].
 
 
 userinfo(Userinfo) -->
@@ -231,34 +246,11 @@ port(Port) -->
 port(['8', '0']) -->
     [].
 
-slash() -->
+slash(['/']) -->
     ['/'].
-slash() -->
+slash([]) -->
     [].
 
-path_query_frag(Path, Query, Fragment) -->
-    slash_path(Path),
-    query(Query),
-    fragment(Fragment).
-path_query_frag([], [], []) -->
-    [].
-
-
-zos_path_query_frag(Path, Query, Fragment) -->
-    ['/'],
-    zos_path(Path),
-    query(Query),
-    fragment(Fragment).
-zos_path_query_frag([], [], []) -->
-    [].
-
-
-%%% Regole per il blocco tra authority e query / fragment
-%%% può avere uno dei seguenti valori:
-%%% vuoto
-%%% '/'
-%%% '/' path
-%%% La BNF associata è ['/' [path]]
 
 slash_path(Path) -->
     ['/'],
@@ -270,9 +262,11 @@ slash_path([]) -->
 
 
 path(Path) -->
-    identificatore(H),
-    path_opt(T),
-    {append(H, T, Path)}.
+    identificatore(X),
+    path_opt(Y),
+    slash(Z),
+    {append(X, Y, XY)},
+    {append(XY, Z, Path)}.
 path([])  -->
     [].
 
@@ -284,6 +278,16 @@ path_opt([ '/' | Path_opt]) -->
 path_opt([]) -->
     [].
 
+slash_zos_path(Path) -->
+    ['/'],
+    zos_path(Path).
+slash_zos_path([]) -->
+    [].
+
+zos_path_opt(Path) -->
+    zos_path(Path).
+zos_path_opt([]) -->
+    [].
 
 zos_path(Path) -->
     id44(Path),
@@ -411,25 +415,25 @@ indirizzo_ip(Ip) -->
     terzina(NNN2), {length(NNN2, 3)}, ['.'],
     terzina(NNN3), {length(NNN3, 3)}, ['.'],
     terzina(NNN4), {length(NNN4, 3)},
-    {append(NNN1 , ['.'], N1),
+    { append(NNN1 , ['.'], N1),
      append(NNN2, ['.'], N2),
      append(NNN3, ['.'], N3),
      append(N1,  N2, N12),
      append(N3, NNN4, N34),
-     append(N12, N34, Ip)}.
+     append(N12, N34, Ip) }.
 
-terzina(NNN) -->
+terzina(Num) -->
     [N1], [N2], [N3],
-    {single_digit(N1),
+    { single_digit(N1),
      single_digit(N2),
      single_digit(N3),
-     controllo_terzina(N1, N2, N3),
-     append([N1], [N2], N12),
-     append(N12, [N3], NNN)}.
+     append([N1], [N2], N1N2),
+     append(N1N2, [N3], Num),
+     check_range(Num) }.
 
-controllo_terzina(N1, N2, N3) :-
-    N is N1 * N2 * N3,
-    N >= 0,
-    N =< 255.
+check_range(Numstring) :-
+    number_string(Num, Numstring),
+    Num >= 0,
+    Num =< 255.
 
 %%% end of file -- uri-parse.pl

@@ -321,7 +321,7 @@ class Tests(unittest.TestCase):
             's:path/p/ath/': {
                 'scheme': 's',
                 'userinfo': None,
-                'host': 'host',
+                'host': None,
                 'port': 80,
                 'path': 'path/p/ath/',
                 'query': None,
@@ -330,7 +330,7 @@ class Tests(unittest.TestCase):
             's:/path/p/ath/': {
                 'scheme': 's',
                 'userinfo': None,
-                'host': 'host',
+                'host': None,
                 'port': 80,
                 'path': 'path/p/ath/',
                 'query': None,
@@ -339,7 +339,7 @@ class Tests(unittest.TestCase):
             's:/path ath/': {
                 'scheme': 's',
                 'userinfo': None,
-                'host': 'host',
+                'host': None,
                 'port': 80,
                 'path': 'path ath/',
                 'query': None,
@@ -646,6 +646,15 @@ class Tests(unittest.TestCase):
                 'path':None,
                 'query': None,
                 'fragment': 'abc'
+            },
+            'zos:?abc': {
+                'scheme': 'zos',
+                'userinfo': None,
+                'host': None,
+                'port': 80,
+                'path': None,
+                'query': 'abc',
+                'fragment': None
             },
             'zos:': {
                 'scheme': 'zos',
