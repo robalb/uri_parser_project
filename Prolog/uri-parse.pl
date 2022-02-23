@@ -141,8 +141,17 @@ uri_parse_start(Scheme, Userinfo, Host, Port, Path, Query, Fragment) -->
     scheme(Scheme),
     [':'],
     authorithy(Userinfo, Host, Port),
-    path_query_frag(Path, Query, Fragment).
+    slash_path(Path),
+    query(Query),
+    fragment(Fragment).
 
+uri_parse_start(Scheme, [], [], ['8', '0'], Path, Query, Fragment) -->
+    scheme(Scheme),
+    [':'],
+    slash(),
+    path(Path),
+    query(Query),
+    fragment(Fragment).
 
 %%%
 %%% regole tel/fax
@@ -188,8 +197,8 @@ authorithy(Userinfo, Host, Port) -->
     userinfo(Userinfo),
     host(Host),
     port(Port).
-authorithy([], [], ['8', '0']) -->
-    [].
+% authorithy([], [], ['8', '0']) -->
+%     [].
 
 
 userinfo(Userinfo) -->
@@ -222,10 +231,13 @@ port(Port) -->
 port(['8', '0']) -->
     [].
 
+slash() -->
+    ['/'].
+slash() -->
+    [].
 
 path_query_frag(Path, Query, Fragment) -->
-    ['/'],
-    path(Path),
+    slash_path(Path),
     query(Query),
     fragment(Fragment).
 path_query_frag([], [], []) -->
@@ -238,6 +250,22 @@ zos_path_query_frag(Path, Query, Fragment) -->
     query(Query),
     fragment(Fragment).
 zos_path_query_frag([], [], []) -->
+    [].
+
+
+%%% Regole per il blocco tra authority e query / fragment
+%%% può avere uno dei seguenti valori:
+%%% vuoto
+%%% '/'
+%%% '/' path
+%%% La BNF associata è ['/' [path]]
+
+slash_path(Path) -->
+    ['/'],
+    path(Path).
+slash_path([]) -->
+    ['/'].
+slash_path([]) -->
     [].
 
 
@@ -353,7 +381,7 @@ single_id44_character(Char) :-
 
 single_character(Char) :-
     char_code(Char, C),
-    C >= 33,
+    C >= 32,
     C =< 126.
 
 single_query_character(Char) :-
