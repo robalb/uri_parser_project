@@ -73,7 +73,7 @@ number_codes_wrapper(A, B) :-
     number_codes(A,B).
 
 
-% atom_codes_wrapper/2
+% atom_chars_wrapper/2
 %
 % permette di avere una lista vuota al posto di un atomo vuoto
 %
