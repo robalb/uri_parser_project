@@ -186,7 +186,7 @@
 (defun parse-generic-or-zos (lista scheme)
   (let ((authorithy (authorithy-parse lista)))
     (let ((path-query-fragment
-           (path-query-fragment-parse (fourth authorithy) scheme)))
+           (path-query-fragment-parse (remainder authorithy) scheme)))
       (list (remainder path-query-fragment) (first authorithy)
             (second authorithy) (third authorithy) (first path-query-fragment)
             (second path-query-fragment) (third path-query-fragment)))))

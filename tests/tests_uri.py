@@ -12,14 +12,14 @@ class Tests(unittest.TestCase):
         self.lisp = LispParser()
         self.prolog = PrologParser()
 
-    # def test_LISP_failing_uris(self):
-    #   self.failing_uris(self.lisp)
+    def test_LISP_failing_uris(self):
+      self.failing_uris(self.lisp)
 
     def test_PROLOG_failing_uris(self):
       self.failing_uris(self.prolog)
 
-    # def test_LISP_valid_uris(self):
-    #   self.valid_uris(self.lisp)
+    def test_LISP_valid_uris(self):
+      self.valid_uris(self.lisp)
 
     def test_PROLOG_valid_uris(self):
       self.valid_uris(self.prolog)
