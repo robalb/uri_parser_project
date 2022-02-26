@@ -1,7 +1,7 @@
 
 # URI-parser - Prolog
 
-## Componenti del gruppo
+## Componenti del gruppo di gennaio
 
 - 865993 Christian Dotti
 - 866359 Adriano Colombo
@@ -9,7 +9,7 @@
 
 Questo progetto è open source e disponibile su 
 [github](https://github.com/robalb/uri_parser_project)
-I test automatici con gli  URI su cui è stato testato il parser sono 
+I test automatici con gli  URI su cui è stato testato il parser sono
 consultabili al seguente link
 https://github.com/robalb/uri_parser_project/blob/master/tests/tests_uri.py
 
