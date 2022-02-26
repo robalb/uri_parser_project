@@ -114,7 +114,7 @@ class Tests(unittest.TestCase):
           'zos://host:43/id44()?query',
           'zos://host:43/id44(?query',
           'zos://host:43/id44)?query',
-          'zos:host/', #aperto a interpretazione - modifiche febbraio
+          'zos://host/', #aperto a interpretazione - modifiche febbraio
           'zos://host/?query'
       ]
       for uri in tests:

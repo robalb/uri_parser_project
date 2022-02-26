@@ -1,0 +1,20 @@
+Per eseguire questi test:
+
+- estrarre il contenuto dello zip all'interno del progetto,
+  in modo da ottenere la seguente cartella:
+  |- Lisp/
+  |- Prolog/
+  |- tests/
+  |- Dockerfile
+
+- installare docker https://docs.docker.com/get-docker/
+
+- con il terminale, navigare nella cartella in cui si trova il progetto
+  poi eseguire questi comandi:
+
+  docker build -t uri_parser_tests .
+
+  docker run uri_parser_tests
+
+questi passaggi funzionano sia su linux che su windows
+
