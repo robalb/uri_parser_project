@@ -74,10 +74,10 @@
         (list "Fragment:" (list-to-string fragment))))
 
 
-;;; Definizione di funzioni il cui scopo è fare in modo
-;;; che la struttura del programma rispecchi il più possibile
+;;; Definizione di funzioni il cui scopo e' fare in modo
+;;; che la struttura del programma rispecchi il piu' possibile
 ;;; quella delle regole di produzione della grammatica che deve riconoscere.
-;;; Esempio: La produzione [userinfo @] può essere definita tramite
+;;; Esempio: La produzione [userinfo @] puo' essere definita tramite
 ;;; le funzioni (must-end-with @ (one-or-more 'identificatore))
 
 (defun halt-parser (&optional reason)
@@ -317,7 +317,7 @@
 
 ;;; Definizione progressivamente restrittiva dei predicati per il riconoscimento
 ;;; dei caratteri all'interno degli identificatori.
-;;; Per semplicità, a differenza dell'rfc, definiamo come base senza restrizioni
+;;; Per semplicita, a differenza dell'rfc, definiamo come base senza restrizioni
 ;;; qualsiasi carattere stampabile dello standard ascii, ovvero qualsiasi
 ;;; carattere nel range 0x20 - 0x7E
 
@@ -341,7 +341,7 @@
 
 ;;; Le regole per il riconoscimento di un IPv4 sono ridondanti e non
 ;;; contribuiscono al funzionamento del programma, dal momento che non
-;;; è richiesto di differenziare in alcun modo tra un host e un IPv4.
+;;; e' richiesto di differenziare in alcun modo tra un host e un IPv4.
 ;;; Sono tuttavia presenti nella grammatica della consegna, e per questo motivo
 ;;; Le abbiamo implementate e integrate nel programma
 

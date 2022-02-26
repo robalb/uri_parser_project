@@ -19,9 +19,9 @@ grammatica URI descritta nella consegna.
 La funzione uri-parse 
 Se chiamata con un uri valido restituisce una struttura implementata tramite
 liste.
-Nel caso in cui un uri non sia valido viene sollevata un eccezione con -
+Nel caso in cui un uri non sia valido viene sollevata un eccezione, con -
 dove possibile - una descrizione dettagliata della causa.
 
 Ai fini dell'implementazione, un carattere è considerato come
 qualsiasi carattere stampabile dello standard ascii, ovvero qualsiasi
-carattere nel range 0x21 - 0x7E
+carattere nel range 0x20 - 0x7E
