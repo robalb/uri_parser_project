@@ -293,6 +293,23 @@
 (defun fragment-parse (lista)
   (one-or-more-satisfying lista 'anyp))
 
+(defun id44p (char)
+  (or (alfanump char)
+      (eql #\. char)))
+
+(defun id8p (char)
+  (alfanump char))
+
+(defun alfap (char)
+  (or (and (char<= char #\Z) (char>= char #\A))
+      (and (char<= char #\z) (char>= char #\a))))
+
+(defun digitp (char)
+  (and (char<= char #\9) (char>= char #\0)))
+
+(defun alfanump (char)
+  (or (alfap char)
+      (digitp char)))
 
 ;;; Definizione dei predicati per il riconoscimento dei caratteri all'interno
 ;;; degli identificatori
@@ -311,23 +328,6 @@
 (defun queryp (char)
   (char/= char #\#))
 
-(defun id44p (char)
-  (or (alfanump char)
-      (eql #\. char)))
-
-(defun id8p (char)
-  (alfanump char))
-
-(defun alfanump (char)
-  (or (alfap char)
-      (digitp char)))
-
-(defun alfap (char)
-  (or (and (char<= char #\Z) (char>= char #\A))
-      (and (char<= char #\z) (char>= char #\a))))
-
-(defun digitp (char)
-  (and (char<= char #\9) (char>= char #\0)))
 
 (defun anyp (char)
   t)
