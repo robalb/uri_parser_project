@@ -286,25 +286,29 @@
 
 (defun zos-path-parse (lista)
   (let ((res-44 (id44 lista)))
-    (if (eql (first (remainder res-44)) #\()
-        (let ((res-8 (id8 (rest (remainder res-44)))))
-          (if (eql (first (remainder res-8)) #\))
-              (list (concatenate 'list 
-                                 (first res-44) (list #\() (first res-8)
-                                 (list #\)))
-                    (rest (remainder res-8)))
-            (halt-parser (format nil "missing closing bracket after (~A" 
-                                 (list-to-string (first res-8))))))
-      res-44)))
+    (if (null (first res-44))
+        (list NIL lista)
+      (if (eql (first (remainder res-44)) #\()
+          (let ((res-8 (id8 (rest (remainder res-44)))))
+            (if (eql (first (remainder res-8)) #\))
+                (list (concatenate 'list 
+                                   (first res-44) (list #\() (first res-8)
+                                   (list #\)))
+                      (rest (remainder res-8)))
+              (halt-parser (format nil "missing closing bracket after (~A" 
+                                   (list-to-string (first res-8))))))
+        res-44))))
 
 (defun id44 (lista)
-  (let ((res (one-or-more-satisfying lista 'id44p)))
-    (if (or (> (length (first res)) 44)
-            (or (not (alfap (first (first res))))
-                (eql (first (last (first res))) #\.)))
-        (halt-parser "id44 can't exceed 44 char length,
-         start with a letter, or end with a '.'")
-      res)))
+  (let ((res (zero-or-more-satisfying lista 'id44p)))
+    (if (null (first res))
+        (list NIL lista)
+      (if (or (> (length (first res)) 44)
+              (or (not (alfap (first (first res))))
+                  (eql (first (last (first res))) #\.)))
+          (halt-parser "id44 can't exceed 44 char length,
+          start with a letter, or end with a '.'")
+        res))))
 
 (defun id8 (lista)
   (let ((res (one-or-more-satisfying lista 'id8p)))
