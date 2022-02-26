@@ -55,6 +55,7 @@ class Tests(unittest.TestCase):
           's://:42', #host missing
           's://host:', #value missing
           #PATH
+          's://host:99path',
           's://host//', #path can't have empty identifier between / /
           's://host//path',
           's://host/path//',

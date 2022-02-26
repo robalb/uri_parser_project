@@ -195,14 +195,6 @@
     (let ((userinfo (userinfo-parse lista)))
       (list (remainder userinfo) (first userinfo) nil nil nil nil nil))))
 
-(defun parse-generic-or-zos (lista scheme)
-  (let ((authorithy (authorithy-parse lista)))
-    (let ((path-query-fragment
-           (path-query-fragment-parse (remainder authorithy) scheme)))
-      (list (remainder path-query-fragment) (first authorithy)
-            (second authorithy) (third authorithy) (first path-query-fragment)
-            (second path-query-fragment) (third path-query-fragment)))))
-
 (defun authorithy-parse (lista)
   "Parse the expression '//' [ userinfo '@'] host [':' port]"
   (if (and (eql (first lista) #\/) (eql (second lista) #\/))
@@ -213,7 +205,53 @@
         (list (first userinfo) (first host) (first port) (remainder port)))
     (list nil nil nil lista)))
 
-(defun path-query-fragment-parse (lista scheme)
+;;TODO-delete
+(defun parse-generic-or-zos-xx (lista scheme)
+  (let ((authorithy (authorithy-parse lista)))
+    (let ((path-query-fragment
+           (path-query-fragment-parse (remainder authorithy) scheme)))
+      (list (remainder path-query-fragment) (first authorithy)
+            (second authorithy) (third authorithy) (first path-query-fragment)
+            (second path-query-fragment) (third path-query-fragment)))))
+
+;;TODO
+(defun parse-generic-or-zos (lista scheme)
+  (let* (
+         (authorithy (authorithy-parse lista))
+         (authhere (not (eq lista (remainder authorithy))))
+         (path-query-fragment
+          (path-query-fragment-parse (remainder authorithy) scheme authhere)))
+    (list (remainder path-query-fragment) (first authorithy)
+          (second authorithy) (third authorithy) (first path-query-fragment)
+          (second path-query-fragment) (third path-query-fragment))))
+
+;;TODO
+(defun path-query-fragment-parse (lista scheme authpresent)
+  "Parse the expression '/' [path] ['?' query] ['#' fragment]"
+  (if (null authpresent)
+      (pqf lista scheme)
+    (pqf lista scheme)))
+
+;;(defun auth-pqf (lista scheme)
+;;)
+
+
+(defun pqf (lista scheme)
+  (let* (
+         (slash (optslash lista))
+         (path (path-parse-choice (remainder slash) scheme))
+         (query (preceded-by-char (remainder path) #\? 'query-parse))
+         (fragment (preceded-by-char
+                    (remainder query) #\# 'fragment-parse)))
+    (list (first path) (first query) (first fragment) (remainder fragment))))
+
+(defun optslash (lista)
+  (if (eq (first lista) #\/)
+      (list T (rest lista))
+    (list NIL lista)))
+
+;;TODO-delete
+(defun path-query-fragment-parse-xx (lista scheme authpresent)
   "Parse the expression '/' [path] ['?' query] ['#' fragment]"
   (if (eq (first lista) #\/)
       (let* (
