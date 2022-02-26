@@ -162,19 +162,22 @@
   (let* ((scheme (scheme-parse lista))
          (scheme-str (list-to-string (first scheme)))
          (scheme-str-down (string-downcase scheme-str)))
-    (make-uri (first scheme)
-              (cond ((string= scheme-str-down "mailto") 
-                     (parse-mailto (remainder scheme)))
-                    ((string= scheme-str-down "news") 
-                     (parse-news (remainder scheme)))
-                    ((string= scheme-str-down "tel")
-                     (parse-telfax (remainder scheme)))
-                    ((string= scheme-str-down "fax")
-                     (parse-telfax (remainder scheme)))
-                    ((string= scheme-str-down "zos")
-                     (parse-generic-or-zos (remainder scheme) "zos"))
-                    (t
-                     (parse-generic-or-zos (remainder scheme) scheme-str))))))
+    (if (null (first scheme))
+        (halt-parser "invalid scheme")
+      (make-uri (first scheme)
+                (cond ((string= scheme-str-down "mailto") 
+                       (parse-mailto (remainder scheme)))
+                      ((string= scheme-str-down "news") 
+                       (parse-news (remainder scheme)))
+                      ((string= scheme-str-down "tel")
+                       (parse-telfax (remainder scheme)))
+                      ((string= scheme-str-down "fax")
+                       (parse-telfax (remainder scheme)))
+                      ((string= scheme-str-down "zos")
+                       (parse-generic-or-zos (remainder scheme) "zos"))
+                      (t
+                       (parse-generic-or-zos (remainder scheme) 
+                                             scheme-str)))))))
 
 (defun parse-mailto (lista)
   (if (null lista)
@@ -214,7 +217,7 @@
          (query (preceded-by-char (remainder path) #\? 'query-parse))
          (fragment (preceded-by-char (remainder query) #\# 'fragment-parse)))
     (if (and (null (first slash)) (null noauth) (not (null (first path))))
-        (error "There must be a / betweeh authority and path")
+        (halt-parser "There must be a / betweeh authority and path")
       (list (remainder fragment) (first authorithy) (second authorithy)
             (third authorithy) (first path) (first query) (first fragment)))))
 
@@ -291,7 +294,7 @@
   (one-or-more-satisfying lista 'queryp))
 
 (defun fragment-parse (lista)
-  (one-or-more-satisfying lista 'anyp))
+  (one-or-more-satisfying lista 'charp))
 
 (defun id44p (char)
   (or (alfanump char)
@@ -311,26 +314,28 @@
   (or (alfap char)
       (digitp char)))
 
-;;; Definizione dei predicati per il riconoscimento dei caratteri all'interno
-;;; degli identificatori
+;;; Definizione progressivamente restrittiva dei predicati per il riconoscimento
+;;; dei caratteri all'interno degli identificatori.
+;;; Per semplicità, a differenza dell'rfc, definiamo come base senza restrizioni
+;;; qualsiasi carattere stampabile dello standard ascii, ovvero qualsiasi
+;;; carattere nel range 0x20 - 0x7E
+
+(defun charp (char)
+  (char>= char #\Space))
+
+(defun queryp (char)
+  (and (charp char)(char/= char #\#)))
 
 (defun identificatorep (char)
-  (and (char/= char #\/)
+  (and (queryp char)
+       (char/= char #\/)
        (char/= char #\?)
-       (char/= char #\#)
        (char/= char #\@)
        (char/= char #\:)))
 
 (defun hostp (char)
   (and (char/= char #\.)
        (identificatorep char)))
-
-(defun queryp (char)
-  (char/= char #\#))
-
-
-(defun anyp (char)
-  t)
 
 
 ;;; Le regole per il riconoscimento di un IPv4 sono ridondanti e non
