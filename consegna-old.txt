@@ -1,0 +1,19 @@
+URI ::= scheme ‘:’ authorithy [‘/’ [path] [‘?’ query] [‘#’ fragment]]
+| scheme ‘:’ [‘/’] [path] [‘?’ query] [‘#’ fragment]
+| scheme `:’ scheme-syntax
+scheme ::= <identificatore>
+authorithy ::= ‘//’ [ userinfo ‘@’ ] host [‘:’ port]
+userinfo ::= <identificatore>
+host ::= <identificatore-host> [‘.’ <identificatore-host>]*
+| indirizzo-IP
+port ::= <digit>+
+indirizzo-IP ::= <NNN.NNN.NNN.NNN – con N un digit>
+path ::= <identificatore> [‘/’ <identificatore>]*
+query ::= <caratteri senza ‘#’>+
+fragment ::= <caratteri>+
+<identificatore> ::= <caratteri senza ‘/’, ‘?’, ‘#’, ‘@’, e ‘:’>+
+<identificatore-host> ::= <caratteri senza ‘.’, ‘/’, ‘?’, ‘#’, ‘@’, e ‘:’>+
+<digit> ::= ‘0’ |‘1’ |‘2’ |‘3’ |‘4’ |‘5’ |‘6’ |‘7’ |‘8’ |‘9’
+scheme-syntax ::= <sintassi speciale – si veda sotto>
+
+CONSEGNA GENNAIO

@@ -29,8 +29,6 @@ class Tests(unittest.TestCase):
       tests = [
           #https://elearning.unimib.it/mod/forum/discuss.php?d=189837
           'mailto://foo/bar?q',
-          #https://elearning.unimib.it/mod/forum/discuss.php?d=189837#p306737
-          'zos:/',
           #https://elearning.unimib.it/mod/forum/discuss.php?d=189837#p307681
           'zos://you@themainframe.bigiron.fe/hlq.source.fortran(svd)/some/more/path',
           #SCHEME
@@ -39,53 +37,38 @@ class Tests(unittest.TestCase):
           's?:',
           's#:',
           's::',
-          #'s c:',
           ':',   #scheme can't be empty
           #HOST
           's://', #empty host
           's://host.', #invalid dot position
           's://.host',
           's://ho..st',
-          's://ho?st', #invalid characters ( ?,# must be preceeded by /)
-          's://ho#st',
-          #'s://ho st',
           #USERINFO
           's://@host', #empty userinfo
           's://userinfo@', #empty host
           's://u@i@host', #invalid characters
           's://u/i@host',
-          's://u?i@host',
-          's://u#i@host',
-          #'s://u i@host',
           's://u:i@host', #also an invalid character, although allowed by rfc
           #PORT
           's://host:a', #port must be a number
           's://:42', #host missing
           's://host:', #value missing
           #PATH
-          's://host//', #path can't start with slash
+          's://host:99path',
+          's://host//', #path can't have empty identifier between / /
           's://host//path',
           's://host/path//',
-          's://host/path/', #path can't end with slash
-          's://host/path/?asd',
-          's://host/path/#asd',
-          's://host/path/path/',
-          's:path/path', #path must start with slash, even without authority
-          's:/path/',
           's:/path//path',
           's:host/pa@th', #invalid characters
           's:host/pa:th',
-          's:host/pa?th',
-          's:host/pa#th',
-          #'s:host/pa th',
           #QUERY
-          's:?query', #a slash must preceed the query
-          #'s:/?quer y', #invalid characters
           's://host/path?', #query cant be empty
+          's:/?',
+          's:?',
           #FRAGMENT
-          's:#fragment', # a slash must preceed the fragment
           's://host/path#', #fragment cant be empty
           's:/#',
+          's:#',
           #'s://host/path#fragm ent', #invalid characters
 
           #MAILTO
@@ -116,7 +99,6 @@ class Tests(unittest.TestCase):
           'tel:us:er',
 
           #ZOS
-          'zos:/',
           'zos:/.abc', #id44 must start with a letter
           'zos:/1abc',
           'zos:/abc.', #id44 can't end wit a dot
@@ -131,7 +113,7 @@ class Tests(unittest.TestCase):
           'zos://host:43/id44()?query',
           'zos://host:43/id44(?query',
           'zos://host:43/id44)?query',
-          'zos:/?path', #zos path is required
+          'zos://host/', #aperto a interpretazione - modifiche febbraio
           'zos://host/?query'
       ]
       for uri in tests:
@@ -210,8 +192,8 @@ class Tests(unittest.TestCase):
                 'query': None,
                 'fragment': None
             },
-            's1://host': {
-                'scheme': 's1',
+            's 1://host': {
+                'scheme': 's 1',
                 'userinfo': None,
                 'host': 'host',
                 'port': 80,
@@ -224,6 +206,15 @@ class Tests(unittest.TestCase):
                 'scheme': 's',
                 'userinfo': None,
                 'host': 'ho.st.asd',
+                'port': 80,
+                'path': None,
+                'query': None,
+                'fragment': None
+            },
+            's://ho.st.a sd': {
+                'scheme': 's',
+                'userinfo': None,
+                'host': 'ho.st.a sd',
                 'port': 80,
                 'path': None,
                 'query': None,
@@ -309,6 +300,51 @@ class Tests(unittest.TestCase):
                 'query': None,
                 'fragment': None
             },
+            's://host/path/': {
+                'scheme': 's',
+                'userinfo': None,
+                'host': 'host',
+                'port': 80,
+                'path': 'path/',
+                'query': None,
+                'fragment': None
+            },
+            's://host/p/ath/': {
+                'scheme': 's',
+                'userinfo': None,
+                'host': 'host',
+                'port': 80,
+                'path': 'p/ath/',
+                'query': None,
+                'fragment': None
+            },
+            's:path/p/ath/': {
+                'scheme': 's',
+                'userinfo': None,
+                'host': None,
+                'port': 80,
+                'path': 'path/p/ath/',
+                'query': None,
+                'fragment': None
+            },
+            's:/path/p/ath/': {
+                'scheme': 's',
+                'userinfo': None,
+                'host': None,
+                'port': 80,
+                'path': 'path/p/ath/',
+                'query': None,
+                'fragment': None
+            },
+            's:/path ath/': {
+                'scheme': 's',
+                'userinfo': None,
+                'host': None,
+                'port': 80,
+                'path': 'path ath/',
+                'query': None,
+                'fragment': None
+            },
             #QUERY
             #common use case
             's:/?q=12&rr=[]': {
@@ -329,6 +365,24 @@ class Tests(unittest.TestCase):
                 'query': 'quer%20+-_y',
                 'fragment': None
             },
+            's:?quer%20+-_y': {
+                'scheme': 's',
+                'userinfo': None,
+                'host': None,
+                'port': 80,
+                'path':None,
+                'query': 'quer%20+-_y',
+                'fragment': None
+            },
+            's:path?quer%20+-_y': {
+                'scheme': 's',
+                'userinfo': None,
+                'host': None,
+                'port': 80,
+                'path': 'path',
+                'query': 'quer%20+-_y',
+                'fragment': None
+            },
             's:/?query/?@:.': {
                 'scheme': 's',
                 'userinfo': None,
@@ -345,6 +399,24 @@ class Tests(unittest.TestCase):
                 'port': 80,
                 'path':None,
                 'query': 'query?@:.',
+                'fragment': None
+            },
+            's://host?query': {
+                'scheme': 's',
+                'userinfo': None,
+                'host': 'host',
+                'port': 80,
+                'path':None,
+                'query': 'query',
+                'fragment': None
+            },
+            's://host/path/?query': {
+                'scheme': 's',
+                'userinfo': None,
+                'host': 'host',
+                'port': 80,
+                'path': 'path/',
+                'query': 'query',
                 'fragment': None
             },
             's://host/?query?#fragment': {
@@ -386,14 +458,14 @@ class Tests(unittest.TestCase):
                 'query': 'query',
                 'fragment': 'fragment'
             },
-            's://host/?query#fragme?#@:nt': {
+            's://host/?query#fragme?#@: nt': {
                 'scheme': 's',
                 'userinfo': None,
                 'host': 'host',
                 'port': 80,
                 'path':None,
                 'query': 'query',
-                'fragment': 'fragme?#@:nt'
+                'fragment': 'fragme?#@: nt'
             },
             's:/#fragment': {
                 'scheme': 's',
@@ -401,6 +473,24 @@ class Tests(unittest.TestCase):
                 'host': None,
                 'port': 80,
                 'path':None,
+                'query': None,
+                'fragment': 'fragment'
+            },
+            's:#fragment': {
+                'scheme': 's',
+                'userinfo': None,
+                'host': None,
+                'port': 80,
+                'path':None,
+                'query': None,
+                'fragment': 'fragment'
+            },
+            's:path#fragment': {
+                'scheme': 's',
+                'userinfo': None,
+                'host': None,
+                'port': 80,
+                'path': 'path',
                 'query': None,
                 'fragment': 'fragment'
             },
@@ -538,6 +628,34 @@ class Tests(unittest.TestCase):
             },
 
             #ZOS
+            #https://elearning.unimib.it/mod/forum/discuss.php?d=196181
+            'zos:/': {
+                'scheme': 'zos',
+                'userinfo': None,
+                'host': None,
+                'port': 80,
+                'path':None,
+                'query': None,
+                'fragment': None
+            },
+            'zos:/#abc': {
+                'scheme': 'zos',
+                'userinfo': None,
+                'host': None,
+                'port': 80,
+                'path':None,
+                'query': None,
+                'fragment': 'abc'
+            },
+            'zos:?abc': {
+                'scheme': 'zos',
+                'userinfo': None,
+                'host': None,
+                'port': 80,
+                'path': None,
+                'query': 'abc',
+                'fragment': None
+            },
             'zos:': {
                 'scheme': 'zos',
                 'userinfo': None,
@@ -547,7 +665,7 @@ class Tests(unittest.TestCase):
                 'query': None,
                 'fragment': None
             },
-            'ZOS:': {
+            'ZOS:/': {
                 'scheme': 'ZOS',
                 'userinfo': None,
                 'host': None,
@@ -557,6 +675,15 @@ class Tests(unittest.TestCase):
                 'fragment': None
             },
             'zos:/zos.path(z0s)': {
+                'scheme': 'zos',
+                'userinfo': None,
+                'host': None,
+                'port': 80,
+                'path': 'zos.path(z0s)',
+                'query': None,
+                'fragment': None
+            },
+            'zos:zos.path(z0s)': {
                 'scheme': 'zos',
                 'userinfo': None,
                 'host': None,

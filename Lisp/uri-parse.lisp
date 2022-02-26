@@ -59,12 +59,10 @@
 (defun make-uri (scheme rest)
   "returns the uri structure, or throws an exception if the remainder of the
    parsed string is not empty"
-  (if (or (haltedp scheme) (haltedp rest))
-      (halt-parser)
-    (if (null (first rest))
-        (make-uri-aux scheme (second rest) (third rest) (fourth rest)
-                      (fifth rest) (sixth rest) (seventh rest))
-      (halt-parser))))
+  (if (null (first rest))
+      (make-uri-aux scheme (second rest) (third rest) (fourth rest)
+                    (fifth rest) (sixth rest) (seventh rest))
+    (halt-parser)))
 
 (defun make-uri-aux (scheme userinfo host port path query fragment)
   (list (list "Scheme:" (list-to-string scheme))
@@ -76,21 +74,17 @@
         (list "Fragment:" (list-to-string fragment))))
 
 
-;;; Definizione di funzioni il cui scopo è fare in modo
-;;; che la struttura del programma rispecchi il più possibile
+;;; Definizione di funzioni il cui scopo e' fare in modo
+;;; che la struttura del programma rispecchi il piu' possibile
 ;;; quella delle regole di produzione della grammatica che deve riconoscere.
-;;; Esempio: La produzione [userinfo @] può essere definita tramite
+;;; Esempio: La produzione [userinfo @] puo' essere definita tramite
 ;;; le funzioni (must-end-with @ (one-or-more 'identificatore))
 
-(defun halt-parser ()
-  "Halts the parser"
-  nil)
-(defun haltedp (lista)
-  "If the input is a list of length 0 then the parser is halted,
-    otherwise the parsing can continue"
-  (if (eq (length lista) 0)
-      t
-    nil))
+(defun halt-parser (&optional reason)
+  "Halt the parser, by signaling a fatal error"
+  (if (null reason)
+      (error "Invalid URI")
+    (error "Invalid URI: ~A" reason)))
 
 (defun remainder (lista)
   "takes in input the list returned from an expression function, and returns 
@@ -129,23 +123,32 @@
    makes it work only if it's preceded by the given char"
   (if (eql (first lista) char)
       (if (null (rest lista))
-          (halt-parser)
+          (halt-parser (format nil "unexpected end of string after ~A" char))
         (funcall expr (rest lista)))
     (list nil lista)))
 
 (defun recursive-char-identifier (lista char identifier)
   "parses an expression of the form ['Char' <identifier> ]* "
   (if (eq (first lista) char)
-      (let ((res (one-or-more-satisfying (rest lista) identifier)))
-        (if (haltedp res)
-            (halt-parser)
-          (let ((res-rec (recursive-char-identifier
-                          (remainder res) char identifier)))
-            (if (haltedp res-rec)
-                (halt-parser)
-              (list
-               (append (append (list char) (first res)) (first res-rec))
-               (second res-rec))))))
+      (let* (
+             (res (one-or-more-satisfying (rest lista) identifier))
+             (res-rec (recursive-char-identifier
+                       (remainder res) char identifier)))
+        (list
+         (append (append (list char) (first res)) (first res-rec))
+         (second res-rec)))
+    (list nil lista)))
+
+(defun recursive-char-identifierv (lista char identifier &optional lastvoid)
+  "parses an expression of the form ['Char' <identifier> ]* ['Char'] "
+  (if (and (eq (first lista) char) (not lastvoid))
+      (let* (
+             (res (zero-or-more-satisfying (rest lista) identifier))
+             (res-rec (recursive-char-identifierv
+                       (remainder res) char identifier (null (first res)))))
+        (list
+         (append (append (list char) (first res)) (first res-rec))
+         (second res-rec)))
     (list nil lista)))
 
 
@@ -159,93 +162,69 @@
   (let* ((scheme (scheme-parse lista))
          (scheme-str (list-to-string (first scheme)))
          (scheme-str-down (string-downcase scheme-str)))
-    (make-uri (first scheme)
-              (cond ((string= scheme-str-down "mailto") 
-                     (parse-mailto (remainder scheme)))
-                    ((string= scheme-str-down "news") 
-                     (parse-news (remainder scheme)))
-                    ((string= scheme-str-down "tel")
-                     (parse-telfax (remainder scheme)))
-                    ((string= scheme-str-down "fax")
-                     (parse-telfax (remainder scheme)))
-                    ((string= scheme-str-down "zos")
-                     (parse-generic-or-zos (remainder scheme) "zos"))
-                    (t
-                     (parse-generic-or-zos (remainder scheme) scheme-str))))))
+    (if (null (first scheme))
+        (halt-parser "invalid scheme")
+      (make-uri (first scheme)
+                (cond ((string= scheme-str-down "mailto") 
+                       (parse-mailto (remainder scheme)))
+                      ((string= scheme-str-down "news") 
+                       (parse-news (remainder scheme)))
+                      ((string= scheme-str-down "tel")
+                       (parse-telfax (remainder scheme)))
+                      ((string= scheme-str-down "fax")
+                       (parse-telfax (remainder scheme)))
+                      ((string= scheme-str-down "zos")
+                       (parse-generic-or-zos (remainder scheme) "zos"))
+                      (t
+                       (parse-generic-or-zos (remainder scheme) 
+                                             scheme-str)))))))
 
 (defun parse-mailto (lista)
   (if (null lista)
       (list nil nil nil nil nil nil nil)
-    (let ((userinfo (userinfo-parse lista)))
-      (if (haltedp userinfo)
-          (halt-parser)
-        (let ((host (preceded-by-char (remainder userinfo) #\@ 'host-parse)))
-          (if (haltedp host)
-              (halt-parser)
-            (list (remainder host)
-                  (first userinfo) (first host) nil nil nil nil)))))))
+    (let* ((userinfo (userinfo-parse lista))
+           (host (preceded-by-char (remainder userinfo) #\@ 'host-parse)))
+      (list (remainder host) (first userinfo) (first host) nil nil nil nil))))
 
 (defun parse-news (lista)
   (if (null lista)
       (list nil nil nil nil nil nil nil)
     (let ((host (host-parse lista)))
-      (if (haltedp host)
-          (halt-parser)
-        (list (remainder host) nil (first host) nil nil nil nil)))))
+      (list (remainder host) nil (first host) nil nil nil nil))))
 
 (defun parse-telfax (lista)
   (if (null lista)
       (list nil nil nil nil nil nil nil)
     (let ((userinfo (userinfo-parse lista)))
-      (if (haltedp userinfo)
-          (halt-parser)
-        (list (remainder userinfo) (first userinfo) nil nil nil nil nil)))))
-
-(defun parse-generic-or-zos (lista scheme)
-  (let ((authorithy (authorithy-parse lista)))
-    (if (haltedp authorithy)
-        (halt-parser)
-      (let ((path-query-fragment
-             (path-query-fragment-parse (fourth authorithy) scheme)))
-        (if (haltedp path-query-fragment)
-            (halt-parser)
-          (list (remainder path-query-fragment) (first authorithy)
-                (second authorithy) (third authorithy)
-                (first path-query-fragment) (second path-query-fragment)
-                (third path-query-fragment)))))))
+      (list (remainder userinfo) (first userinfo) nil nil nil nil nil))))
 
 (defun authorithy-parse (lista)
   "Parse the expression '//' [ userinfo '@'] host [':' port]"
   (if (and (eql (first lista) #\/) (eql (second lista) #\/))
-      (let ((userinfo (userinfo-parse (rest (rest lista)) #\@)))
-        (if (haltedp userinfo)
-            (halt-parser)
-          (let ((host (host-parse (remainder userinfo))))
-            (if (haltedp host)
-                (halt-parser)
-              (let ((port (preceded-by-char (remainder host) #\: 'port-parse)))
-                (if (haltedp port)
-                    (halt-parser)
-                  (list (first userinfo)
-                        (first host) (first port) (remainder port))))))))
+      (let* (
+             (userinfo (userinfo-parse (rest (rest lista)) #\@))
+             (host (host-parse (remainder userinfo)))
+             (port (preceded-by-char (remainder host) #\: 'port-parse)))
+        (list (first userinfo) (first host) (first port) (remainder port)))
     (list nil nil nil lista)))
 
-(defun path-query-fragment-parse (lista scheme)
-  "Parse the expression '/' [path] ['?' query] ['#' fragment]"
+(defun parse-generic-or-zos (lista scheme)
+  (let* (
+         (authorithy (authorithy-parse lista))
+         (noauth (eq lista (remainder authorithy)))
+         (slash (slash-parse (remainder authorithy)))
+         (path (path-parse-choice (remainder slash) scheme))
+         (query (preceded-by-char (remainder path) #\? 'query-parse))
+         (fragment (preceded-by-char (remainder query) #\# 'fragment-parse)))
+    (if (and (null (first slash)) (null noauth) (not (null (first path))))
+        (halt-parser "There must be a / betweeh authority and path")
+      (list (remainder fragment) (first authorithy) (second authorithy)
+            (third authorithy) (first path) (first query) (first fragment)))))
+
+(defun slash-parse (lista)
   (if (eq (first lista) #\/)
-      (let ((path (path-parse-choice (rest lista) scheme)))
-        (if (haltedp path)
-            (halt-parser)
-          (let ((query (preceded-by-char (remainder path) #\? 'query-parse)))
-            (if (haltedp query)
-                (halt-parser)
-              (let ((fragment (preceded-by-char
-                               (remainder query) #\# 'fragment-parse)))
-                (if (haltedp fragment)
-                    (halt-parser)
-                  (list (first path) (first query)
-                        (first fragment) (remainder fragment))))))))
-    (list nil nil nil lista)))
+      (list T (rest lista))
+    (list NIL lista)))
 
 (defun path-parse-choice (lista scheme)
   (if (string= scheme "zos")
@@ -261,69 +240,55 @@
 (defun host-parse (lista)
   (let ((ip (ip-parse lista)))
     (if (null (first ip))
-        (let ((res (one-or-more-satisfying lista 'hostp)))
-          (if (haltedp res)
-              (halt-parser)
-            (let ((res-rec (recursive-char-identifier (remainder res)
-                                                      #\. 'hostp)))
-              (if (haltedp res-rec)
-                  (halt-parser)
-                (list (append (first res) (first res-rec))
-                      (remainder res-rec))))))
+        (let* ((res (one-or-more-satisfying lista 'hostp))
+               (res-rec (recursive-char-identifier (remainder res) #\. 'hostp)))
+          (list (append (first res) (first res-rec)) (remainder res-rec)))
       ip)))
-
 
 (defun port-parse (lista)
   (one-or-more-satisfying lista 'digitp))
 
 (defun zos-path-parse (lista)
   (let ((res-44 (id44 lista)))
-    (if (haltedp res-44)
-        (halt-parser)
+    (if (null (first res-44))
+        (list NIL lista)
       (if (eql (first (remainder res-44)) #\()
           (let ((res-8 (id8 (rest (remainder res-44)))))
-            (if (haltedp res-8)
-                (halt-parser)
-              (if (eql (first (remainder res-8)) #\))
-                  (list (concatenate 'list 
-                                     (first res-44) (list #\() (first res-8)
-                                     (list #\)))
-                        (rest (remainder res-8)))
-                (halt-parser))))
+            (if (eql (first (remainder res-8)) #\))
+                (list (concatenate 'list 
+                                   (first res-44) (list #\() (first res-8)
+                                   (list #\)))
+                      (rest (remainder res-8)))
+              (halt-parser (format nil "missing closing bracket after (~A" 
+                                   (list-to-string (first res-8))))))
         res-44))))
 
 (defun id44 (lista)
-  (let ((res (one-or-more-satisfying lista 'id44p)))
-    (if (haltedp res)
-        (halt-parser)
+  (let ((res (zero-or-more-satisfying lista 'id44p)))
+    (if (null (first res))
+        (list NIL lista)
       (if (or (> (length (first res)) 44)
               (or (not (alfap (first (first res))))
                   (eql (first (last (first res))) #\.)))
-          (halt-parser)
+          (halt-parser "id44 can't exceed 44 char length,
+          start with a letter, or end with a '.'")
         res))))
 
 (defun id8 (lista)
   (let ((res (one-or-more-satisfying lista 'id8p)))
-    (if (haltedp res)
-        (halt-parser)
-      (if (or (> (length (first res)) 8)
-              (digitp (first (first res))))
-          (halt-parser)
-        res))))
+    (if (or (> (length (first res)) 8)
+            (digitp (first (first res))))
+        (halt-parser "id8 can't exceed 8 char length or start with a letter")
+      res)))
 
 (defun path-parse (lista)
   (let ((res (zero-or-more-satisfying lista 'identificatorep)))
     (if (null (first res))
         (list nil lista)
-      (if (haltedp res)
-          (halt-parser)
-        (let ((res-rec
-               (recursive-char-identifier (remainder res)
-                                          #\/ 'identificatorep)))
-          (if (haltedp res-rec)
-              (halt-parser)
-            (list (append (first res) (first res-rec))
-                  (remainder res-rec))))))))
+      (let ((res-rec
+             (recursive-char-identifierv (remainder res) #\/ 'identificatorep)))
+        (list (append (first res) (first res-rec))
+              (remainder res-rec))))))
 
 (defun query-parse (lista)
   (one-or-more-satisfying lista 'queryp))
@@ -352,12 +317,12 @@
 
 ;;; Definizione progressivamente restrittiva dei predicati per il riconoscimento
 ;;; dei caratteri all'interno degli identificatori.
-;;; Per semplicità, a differenza dell'rfc, definiamo come base senza restrizioni
+;;; Per semplicita, a differenza dell'rfc, definiamo come base senza restrizioni
 ;;; qualsiasi carattere stampabile dello standard ascii, ovvero qualsiasi
-;;; carattere nel range 0x21 - 0x7E (lo spazio (0x20) è escluso)
+;;; carattere nel range 0x20 - 0x7E
 
 (defun charp (char)
-  (char>= char #\!))
+  (char>= char #\Space))
 
 (defun queryp (char)
   (and (charp char)(char/= char #\#)))
@@ -376,7 +341,7 @@
 
 ;;; Le regole per il riconoscimento di un IPv4 sono ridondanti e non
 ;;; contribuiscono al funzionamento del programma, dal momento che non
-;;; è richiesto di differenziare in alcun modo tra un host e un IPv4.
+;;; e' richiesto di differenziare in alcun modo tra un host e un IPv4.
 ;;; Sono tuttavia presenti nella grammatica della consegna, e per questo motivo
 ;;; Le abbiamo implementate e integrate nel programma
 

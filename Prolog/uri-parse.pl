@@ -73,7 +73,7 @@ number_codes_wrapper(A, B) :-
     number_codes(A,B).
 
 
-% atom_codes_wrapper/2
+% atom_chars_wrapper/2
 %
 % permette di avere una lista vuota al posto di un atomo vuoto
 %
@@ -85,25 +85,33 @@ atom_chars_wrapper(A, B) :-
     atom_chars(A, B).
 
 
-controllo_insensitive(String, List) :-
+% matches_scheme/2
+%
+% Permette una comparazione case-insensitive tra una stringa e una lista
+% di caratteri.
+% Esempio:
+% > matches_scheme("zos", ['z', 'O', 's']).
+%   T
+%
+matches_scheme(String, List) :-
     string_codes(String, List1),
     string_chars(String1, List),
     string_codes(String1, List2),
-    controllo_insensitive_ric(List1, List2).
+    matches_scheme_ric(List1, List2).
 
-controllo_insensitive_ric([], []).
-controllo_insensitive_ric([H1 | T1], [H2 | T2]) :-
+matches_scheme_ric([], []).
+matches_scheme_ric([H1 | T1], [H2 | T2]) :-
     H1 = H2,
     !,
-    controllo_insensitive_ric(T1, T2).
-controllo_insensitive_ric([H1 | T1], [H2 | T2]) :-
+    matches_scheme_ric(T1, T2).
+matches_scheme_ric([H1 | T1], [H2 | T2]) :-
     H1 is H2 - 32,
     !,
-    controllo_insensitive_ric(T1, T2).
-controllo_insensitive_ric([H1 | T1], [H2 | T2]) :-
+    matches_scheme_ric(T1, T2).
+matches_scheme_ric([H1 | T1], [H2 | T2]) :-
     H1 is H2 + 32,
     !,
-    controllo_insensitive_ric(T1, T2).
+    matches_scheme_ric(T1, T2).
 
 
 %%% Dichiarazione delle DCG per il riconoscimento della grammatica descritta
@@ -112,38 +120,65 @@ controllo_insensitive_ric([H1 | T1], [H2 | T2]) :-
 uri_parse_start(Scheme, Userinfo, Host, ['8', '0'], [], [], []) -->
     scheme(Scheme),
     [':'],
-    { controllo_insensitive("mailto", Scheme), ! },
+    { matches_scheme("mailto", Scheme), ! },
     mailto(Userinfo, Host).
 
 uri_parse_start(Scheme, [], Host, ['8', '0'], [], [], []) -->
     scheme(Scheme),
     [':'],
-    { controllo_insensitive("news", Scheme), ! },
+    { matches_scheme("news", Scheme), ! },
     news_host(Host).
+
+uri_parse_start(Scheme, [], Host, ['8', '0'], [], [], []) -->
+    scheme(Scheme),
+    [':'],
+    { matches_scheme("iptest", Scheme), ! },
+    indirizzo_ip(Host).
 
 uri_parse_start(Scheme, Userinfo, [], ['8', '0'], [], [], []) -->
     scheme(Scheme),
     [':'],
     { tel_fax(Tel_Fax),
-      controllo_insensitive(Tel_Fax, Scheme), ! },
+      matches_scheme(Tel_Fax, Scheme), ! },
     tel_fax_userinfo(Userinfo).
 
 uri_parse_start(Scheme, Userinfo, Host, Port, Path, Query, Fragment) -->
     scheme(Scheme),
     [':'],
-    { controllo_insensitive("zos", Scheme), ! },
+    { matches_scheme("zos", Scheme) },
     authorithy(Userinfo, Host, Port),
-    zos_path_query_frag(Path, Query, Fragment).
+    slash_zos_path(Path),
+    query(Query),
+    fragment(Fragment).
+
+uri_parse_start(Scheme, [], [], ['8', '0'], Path, Query, Fragment) -->
+    scheme(Scheme),
+    [':'],
+    { matches_scheme("zos", Scheme), ! },
+    slash(_),
+    zos_path_opt(Path),
+    query(Query),
+    fragment(Fragment).
 
 uri_parse_start(Scheme, Userinfo, Host, Port, Path, Query, Fragment) -->
     scheme(Scheme),
     [':'],
     authorithy(Userinfo, Host, Port),
-    path_query_frag(Path, Query, Fragment).
+    slash_path(Path),
+    query(Query),
+    fragment(Fragment).
+
+uri_parse_start(Scheme, [], [], ['8', '0'], Path, Query, Fragment) -->
+    scheme(Scheme),
+    [':'],
+    slash(_),
+    path(Path),
+    query(Query),
+    fragment(Fragment).
 
 
-tel_fax(Tel_Fax) :- Tel_Fax = "tel".
-tel_fax(Tel_Fax) :- Tel_Fax = "fax".
+tel_fax("tel").
+tel_fax("fax").
 
 
 tel_fax_userinfo(A) -->
@@ -175,8 +210,6 @@ authorithy(Userinfo, Host, Port) -->
     userinfo(Userinfo),
     host(Host),
     port(Port).
-authorithy([], [], ['8', '0']) -->
-    [].
 
 
 userinfo(Userinfo) -->
@@ -210,38 +243,50 @@ port(['8', '0']) -->
     [].
 
 
-path_query_frag(Path, Query, Fragment) -->
-    ['/'],
-    path(Path),
-    query(Query),
-    fragment(Fragment).
-path_query_frag([], [], []) -->
+slash(['/']) -->
+    ['/'].
+slash([]) -->
     [].
 
 
-zos_path_query_frag(Path, Query, Fragment) -->
+slash_path(Path) -->
     ['/'],
-    zos_path(Path),
-    query(Query),
-    fragment(Fragment).
-zos_path_query_frag([], [], []) -->
+    path(Path).
+slash_path([]) -->
+    ['/'].
+slash_path([]) -->
     [].
 
 
 path(Path) -->
-    identificatore(H),
-    path_opt(T),
-    {append(H, T, Path)}.
+    identificatore(X),
+    path_opt(Y),
+    slash(Z),
+    {append(X, Y, XY)},
+    {append(XY, Z, Path)}.
 path([])  -->
     [].
 
 
-path_opt(['/' | Path_opt]) -->
+path_opt([ '/' | Path_opt]) -->
     ['/'],
     identificatore(H),
     path_opt(T),
     { append(H, T, Path_opt) }.
 path_opt([]) -->
+    [].
+
+
+slash_zos_path(Path) -->
+    ['/'],
+    zos_path(Path).
+slash_zos_path([]) -->
+    [].
+
+
+zos_path_opt(Path) -->
+    zos_path(Path).
+zos_path_opt([]) -->
     [].
 
 
@@ -335,13 +380,13 @@ single_id44_character(Char) :-
 
 
 %%% Definizione di carattere, progressivamente restrittiva.
-%%% Per semplicità, a differenza dell'rfc, definiamo come base senza restrizioni
+%%% Per semplicita, a differenza dell'rfc, definiamo come base senza restrizioni
 %%% qualsiasi carattere stampabile dello standard ascii, ovvero qualsiasi
-%%% carattere nel range 0x21 - 0x7E (lo spazio (0x20) è escluso)
+%%% carattere nel range 0x20 - 0x7E
 
 single_character(Char) :-
     char_code(Char, C),
-    C >= 33,
+    C >= 32,
     C =< 126.
 
 single_query_character(Char) :-
@@ -361,7 +406,7 @@ single_host_character(Char) :-
 
 %%% Le regole per il riconoscimento di un IPv4 sono ridondanti e non
 %%% contribuiscono al funzionamento del programma, dal momento che non
-%%% è richiesto di differenziare in alcun modo tra un host e un IPv4.
+%%% e' richiesto di differenziare in alcun modo tra un host e un IPv4.
 %%% Sono tuttavia presenti nella grammatica della consegna, e per questo motivo
 %%% Le abbiamo implementate e integrate nel programma.
 
@@ -370,25 +415,25 @@ indirizzo_ip(Ip) -->
     terzina(NNN2), {length(NNN2, 3)}, ['.'],
     terzina(NNN3), {length(NNN3, 3)}, ['.'],
     terzina(NNN4), {length(NNN4, 3)},
-    {append(NNN1 , ['.'], N1),
-     append(NNN2, ['.'], N2),
-     append(NNN3, ['.'], N3),
-     append(N1,  N2, N12),
-     append(N3, NNN4, N34),
-     append(N12, N34, Ip)}.
+    { append(NNN1 , ['.'], N1),
+      append(NNN2, ['.'], N2),
+      append(NNN3, ['.'], N3),
+      append(N1,  N2, N12),
+      append(N3, NNN4, N34),
+      append(N12, N34, Ip) }.
 
-terzina(NNN) -->
+terzina(Num) -->
     [N1], [N2], [N3],
-    {single_digit(N1),
-     single_digit(N2),
-     single_digit(N3),
-     controllo_terzina(N1, N2, N3),
-     append([N1], [N2], N12),
-     append(N12, [N3], NNN)}.
+    { single_digit(N1),
+      single_digit(N2),
+      single_digit(N3),
+      append([N1], [N2], N1N2),
+      append(N1N2, [N3], Num),
+      check_range(Num) }.
 
-controllo_terzina(N1, N2, N3) :-
-    N is N1 * N2 * N3,
-    N >= 0,
-    N =< 255.
+check_range(Numstring) :-
+    number_string(Num, Numstring),
+    Num >= 0,
+    Num =< 255.
 
 %%% end of file -- uri-parse.pl
