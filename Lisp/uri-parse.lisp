@@ -139,7 +139,6 @@
          (second res-rec)))
     (list nil lista)))
 
-
 (defun recursive-char-identifierv (lista char identifier &optional lastvoid)
   "parses an expression of the form ['Char' <identifier> ]* ['Char'] "
   (if (and (eq (first lista) char) (not lastvoid))
@@ -151,6 +150,7 @@
          (append (append (list char) (first res)) (first res-rec))
          (second res-rec)))
     (list nil lista)))
+
 
 ;;; Definizione delle funzioni mutualmente recursive per il 
 ;;; Recursive-descent-parser.
@@ -313,6 +313,7 @@
 (defun alfanump (char)
   (or (alfap char)
       (digitp char)))
+
 
 ;;; Definizione progressivamente restrittiva dei predicati per il riconoscimento
 ;;; dei caratteri all'interno degli identificatori.
