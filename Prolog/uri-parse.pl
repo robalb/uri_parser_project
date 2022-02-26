@@ -380,7 +380,7 @@ single_id44_character(Char) :-
 
 
 %%% Definizione di carattere, progressivamente restrittiva.
-%%% Per semplicità, a differenza dell'rfc, definiamo come base senza restrizioni
+%%% Per semplicita, a differenza dell'rfc, definiamo come base senza restrizioni
 %%% qualsiasi carattere stampabile dello standard ascii, ovvero qualsiasi
 %%% carattere nel range 0x20 - 0x7E
 
@@ -406,7 +406,7 @@ single_host_character(Char) :-
 
 %%% Le regole per il riconoscimento di un IPv4 sono ridondanti e non
 %%% contribuiscono al funzionamento del programma, dal momento che non
-%%% è richiesto di differenziare in alcun modo tra un host e un IPv4.
+%%% e' richiesto di differenziare in alcun modo tra un host e un IPv4.
 %%% Sono tuttavia presenti nella grammatica della consegna, e per questo motivo
 %%% Le abbiamo implementate e integrate nel programma.
 
