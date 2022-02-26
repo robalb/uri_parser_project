@@ -140,6 +140,18 @@
     (list nil lista)))
 
 
+(defun recursive-char-identifierv (lista char identifier &optional lastvoid)
+  "parses an expression of the form ['Char' <identifier> ]* ['Char'] "
+  (if (and (eq (first lista) char) (not lastvoid))
+      (let* (
+             (res (zero-or-more-satisfying (rest lista) identifier))
+             (res-rec (recursive-char-identifierv
+                       (remainder res) char identifier (null (first res)))))
+        (list
+         (append (append (list char) (first res)) (first res-rec))
+         (second res-rec)))
+    (list nil lista)))
+
 ;;; Definizione delle funzioni mutualmente recursive per il 
 ;;; Recursive-descent-parser.
 ;;; Ogni funzione implementa il riconoscimento di un simbolo non terminale
@@ -268,7 +280,7 @@
     (if (null (first res))
         (list nil lista)
       (let ((res-rec
-             (recursive-char-identifier (remainder res) #\/ 'identificatorep)))
+             (recursive-char-identifierv (remainder res) #\/ 'identificatorep)))
         (list (append (first res) (first res-rec))
               (remainder res-rec))))))
 
