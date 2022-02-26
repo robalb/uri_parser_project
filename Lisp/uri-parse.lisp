@@ -209,7 +209,7 @@
   (let* (
          (authorithy (authorithy-parse lista))
          (noauth (eq lista (remainder authorithy)))
-         (slash (optslash (remainder authorithy)))
+         (slash (slash-parse (remainder authorithy)))
          (path (path-parse-choice (remainder slash) scheme))
          (query (preceded-by-char (remainder path) #\? 'query-parse))
          (fragment (preceded-by-char (remainder query) #\# 'fragment-parse)))
@@ -218,7 +218,7 @@
       (list (remainder fragment) (first authorithy) (second authorithy)
             (third authorithy) (first path) (first query) (first fragment)))))
 
-(defun optslash (lista)
+(defun slash-parse (lista)
   (if (eq (first lista) #\/)
       (list T (rest lista))
     (list NIL lista)))
